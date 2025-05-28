@@ -8,6 +8,13 @@ from datetime import datetime
 def create_user(fname, lname, email, password, weight, swallow_difficulty=False):
     """Create and return a new user."""
 
+    # test: 
+    # user = create_user("chloe", "nixon", "cnixon@gmail.com", "pass1234", 150)
+    # user_2 = create_user("coffee", "brew", "cnixonnixon@gmail.com", "fun", 122)
+    # db.session.add(user)
+    # db.session.add(user_2)
+    # db.session.commit()
+
     user = User(
         fname = fname,
         lname = lname,
@@ -26,6 +33,12 @@ def get_users():
     """Return all users."""
 
     return db.session.query(User).all()
+
+
+def get_user_by_id(user_id):
+    """Return a user by primary key."""
+
+    return db.session.query(User).get(user_id)
 
 
     
