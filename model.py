@@ -1,4 +1,7 @@
+"""Models for Parkinson's App."""
+
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -13,10 +16,10 @@ class User(db.Model):
     lname = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
+    weight = db.Column(db.Integer, nullable=False)
     signup_date = db.Column(db.DateTime, nullable=False)
-    swallow_difficulty = db.Column(db.boolean)
+    swallow_difficulty = db.Column(db.Boolean)
 
-    setting = db.relationship("Setting", back_populates="user")
     diet_restrictions = db.relationship("DietaryRestriction", back_populates="user")
     nutrition_goals = db.relationship("NutritionGoal", back_populates="user")
     likes_dislikes = db.relationship("LikeDislike", back_populates="user")
@@ -144,8 +147,8 @@ class Recipe(db.Model):
 
     meal_plan_recipes = db.relationship("MealPlanRecipe", back_populates="recipe")
     meal_log_recipes = db.relationship("MealLogRecipe", back_populates="recipe")
-    ingredients = db.relationship("MealLogRecipe", back_populates="recipe")
-    recipe_nutrients = db.relationship("MealLogRecipe", back_populates="recipe")
+    ingredients = db.relationship("Ingredient", back_populates="recipe")
+    recipe_nutrients = db.relationship("RecipeNutrient", back_populates="recipe")
 
     def __repr__(self):
         return f"<Recipe recipe_id={self.recipe_id} title={self.title}>"
@@ -188,8 +191,8 @@ class RecipeNutrient(db.Model):
 
     __tablename__ = "recipe_nutrients"
 
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), nullable=False)
-    nutrient_id = db.Column(db.Integer, db.ForeignKey("nutrients.nutrient_id"), nullable=False)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), primary_key=True, nullable=False)
+    nutrient_id = db.Column(db.Integer, db.ForeignKey("nutrients.nutrient_id"), primary_key=True, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
 
     recipe = db.relationship("Recipe", back_populates="recipe_nutrients")
@@ -220,8 +223,10 @@ class MealLog(db.Model):
 class MealLogRecipe(db.Model):
     """A recipe a user ate in a meal."""
 
-    meal_log_id = db.Column(db.Integer, db.ForeignKey("meal_logs.meal_log_id"), nullable=False)
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), nullable=False)
+    __tablename__ = "meal_log_recipes"
+
+    meal_log_id = db.Column(db.Integer, db.ForeignKey("meal_logs.meal_log_id"), primary_key=True, nullable=False)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), primary_key=True, nullable=False)
     serving_size = db.Column(db.Float, nullable=False)
 
     recipe = db.relationship("Recipe", back_populates="meal_log_recipes")
@@ -253,8 +258,8 @@ class MealPlanRecipe(db.Model):
 
     __tablename__ = "meal_plan_recipes"
 
-    meal_plan_id = db.Column(db.Integer, db.ForeignKey("meal_plans.meal_plan_id"), nullable=False)
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), nullable=False)
+    meal_plan_id = db.Column(db.Integer, db.ForeignKey("meal_plans.meal_plan_id"), primary_key=True, nullable=False)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), primary_key=True, nullable=False)
     meal_type = db.Column(db.String, nullable=False) # ex. ex. "breakfast" "lunch" "dinner" "snack"
     serving_size = db.Column(db.Float, nullable=False)
 
