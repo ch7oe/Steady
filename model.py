@@ -104,7 +104,7 @@ class LikeDislike(db.Model):
     like_dislike_id = db.Column(db.Integer, autoincrement=True, primary_key=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     name = db.Column(db.String, nullable=False)
-    preference = db.Column(db.String, nullable=False)
+    preference = db.Column(db.String, nullable=False) # ex. "like" or "dislike"
 
     user = db.relationship("User", back_populates="likes_dislikes")
 
