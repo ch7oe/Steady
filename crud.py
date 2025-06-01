@@ -163,7 +163,7 @@ def get_allergies_by_user_id(user_id):
 # ------- NutritionGoal CRUD functions -------
 
 def create_nutrition_goal(user_id, goal):
-    """Create and return a nutrition goal for a user"""
+    """Create and return a nutrition goal for a user."""
 
     ng = NutritionGoal(user_id=user_id, goal=goal)
 
@@ -211,7 +211,7 @@ def get_likes_or_dislikes_by_user_id(user_id, preference):
     
 
 def update_like_dislike(like_dislike_id, name=None, preference=None):
-    """Update and return a user's like or dislike"""
+    """Update and return a user's like or dislike."""
 
     like_dislike = db.session.query(LikeDislike).filter(like_dislike_id=like_dislike_id)
 
@@ -268,10 +268,149 @@ def update_reminder(reminder_id, reminder_type=None, reminder_time=None, frequen
     return reminder
 
 
+# ------- Recipe CRUD functions -------
+
+# caching from recipes Spoonacular API
+def create_recipe(spoonacular_id, title, source, url, servings, instructions, texture):
+    """Create and return a new recipe."""
+
+    recipe = Recipe(
+        spoonacular_id=spoonacular_id,
+        title=title,
+        source=source,
+        url=url,
+        servings=servings,
+        instructions=instructions,
+        texture=texture
+    )
+
+    return recipe
 
 
+def get_recipe_by_id(recipe_id):
+    """Return a recipe by primary key."""
+
+    return db.session.query(Recipe).get(recipe_id)
 
 
+def get_recipe_by_spoonacular_id(spoonacular_id):
+    """Return a recipe by Spoonacular id."""
+
+    return db.session.query(Recipe).filter(spoonacular_id=spoonacular_id).first()
+
+
+def get_recipes_by_search(user_id, search_term, limit):
+    """Filters recipes based on search term and user's personal info/settings."""
+
+    # get user
+    user = db.session.query(User).get(user_id)
+
+    if not user:
+        return 
+    
+    # user specific data 
+    ## user allergens
+    user_allergens = set()
+
+    for allergen in user.allergies:
+        user_allergens.add(allergen)
+
+    ## user diet restrictions
+    user_diet_restrictions = set()
+
+    for dr in user.diet_restrictions:
+        user_diet_restrictions.add(dr)
+    
+    ## user nutrtion goals
+    user_nutrition_goals = set()
+
+    for ng in user.nutrition_goals:
+        user_nutrition_goals.add(ng)
+
+    ## user likes -- for extra filtering
+    user_likes = set()
+
+    for like in user.likes_dislikes:
+        if like.preference == "like":
+            user_likes.add(like)
+
+    ## user dislikes 
+    user_dislikes = set()
+
+    for dislike in user.likes_dislikes:
+        if dislike.preference == "dislike":
+            user_dislikes.add(dislike)
+
+
+    # initial query --> where search term is included in a recipe's title OR ingredients
+    initial_query = db.session.query(Recipe).join(Recipe.ingredients).filter(
+        ((Recipe.title.like(f"%{search_term}%")) | (Ingredient.name.like(f"%{search_term}%")))
+    ).distinct()
+
+    current_recipes = initial_query
+
+    # exclude user allergens
+    for allergen in user_allergens:
+        current_recipes = current_recipes.filter(~ Recipe.ingredients.any(Ingredient.name.like(f"%{allergen}%")))
+    
+    # exclude user dislikes 
+    for dislike in user_dislikes:
+        current_recipes = current_recipes.filter(
+            ~ (Recipe.title.like(f"%{dislike}%")) | (Ingredient.name.like(f"%{dislike}%")))
+        
+    # filter recipes by user nutrition goal
+    # "low sugar"
+    # "high protein"
+    # "high fiber"
+    # "low sodium"
+    # Nutrients table : Sugar, Protein, etc.
+
+    # filter by user diet restrictions 
+    # "gluten free"
+    # "vegetarian"
+    # "vegan"
+    # "keto"
+    # "paleo" , etc.
+
+    # current_recipes = current_recies.order_by(???)
+
+    return current_recipes.limit(limit).all()
+
+
+# ------- Ingredient CRUD functions -------
+
+def create_ingredient(recipe_id, name, quantity, unit):
+    """Create and return a new ingredient for a recipe."""
+
+    ingredient = Ingredient(
+        recipe_id=recipe_id,
+        name=name,
+        quantity=quantity,
+        unit=unit
+    )
+
+    return ingredient
+
+
+def get_ingredients_by_recipe_id(recipe_id):
+    """Return all ingredients for a given recipe."""
+
+    return db.session.query(Ingredient).filter(recipe_id=recipe_id).all()
+
+
+# ------- Nutrient CRUD functions (tracked nutrients defined)-------
+
+def create_nutrient(name, unit):
+    """Create and return a new nutrient."""
+
+    nutrient = Nutrient(name=name, unit=unit)
+
+    return nutrient
+
+def get_nutrient_by_name(name):
+    """Return a nutrient by its name."""
+
+    return db.session.query(Nutrient).filter(name=name).first()
 
 
 
