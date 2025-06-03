@@ -481,7 +481,7 @@ def get_meal_log_by_id(meal_log_id):
 # ------- MealLogRecipe CRUD functions -------
 
 def add_recipe_to_meal_log(meal_log_id, recipe_id, serving_size):
-    """Add a recipe to an existing meal log."""
+    """Add and return a recipe to a meal log."""
 
     ml_recipe = MealLogRecipe(
         meal_log_id=meal_log_id,
@@ -496,6 +496,54 @@ def get_recipes_in_meal_log(meal_log_id):
     """Return all recipes for a specific meal log entry."""
 
     return db.session.query(MealLogRecipe).filter(meal_log_id=meal_log_id).all()
+
+
+# ------- MealPlan CRUD functions -------
+
+def create_meal_plan(user_id, meal_plan_date):
+    """Create and return a new meal plan."""
+
+    meal_plan = MealPlan(
+        user_id=user_id,
+        meal_plan_date=meal_plan_date,
+        date_added = datetime.now()
+    )
+
+    return meal_plan
+
+
+def get_meal_plan_by_user_id_and_date(user_id, meal_plan_date):
+    """Return a meal plan for a user on a specific date."""
+
+    return db.session.query(MealPlan).filter(user_id=user_id, meal_plan_date=meal_plan_date).first()
+
+
+# ------- MealPlanRecipe CRUD functions -------
+
+def add_recipe_to_meal_plan(meal_plan_id, recipe_id, meal_type, serving_size):
+    """Add and return a recipe to a meal plan."""
+
+    mp_recipe = MealPlanRecipe(
+        meal_plan_id=meal_plan_id,
+        recipe_id=recipe_id,
+        meal_type=meal_type,
+        serving_size=serving_size
+    )
+
+    return mp_recipe
+
+
+def get_recipes_in_meal_plan(meal_plan_id):
+    """Return all recipes in a meal plan."""
+
+    return db.session.query(MealPlanRecipe).filter(meal_plan_id=meal_plan_id).all()
+
+
+
+
+
+
+
 
 
 
