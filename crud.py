@@ -367,10 +367,27 @@ def get_recipes_by_search(user_id, search_term, limit):
 
     # filter by user diet restrictions 
     # "gluten free"
+    # "ketogenic"
+    # "lacto-vegetarian"
+    # "ovo-vegetarian"
     # "vegetarian"
     # "vegan"
-    # "keto"
+    # "pescetarian"
     # "paleo" , etc.
+
+    # filter by intolerances??
+    # "dairy" 
+    # "egg" 
+    # "gluten" 
+    # "grain"
+    # "peanut"
+    # "seafood"
+    # "sesame"
+    # "shellfish"
+    # "soy"
+    # "sulfite"
+    # "tree nut"
+    # "wheat"
 
     # current_recipes = current_recies.order_by(???)
 
@@ -407,10 +424,82 @@ def create_nutrient(name, unit):
 
     return nutrient
 
+
 def get_nutrient_by_name(name):
     """Return a nutrient by its name."""
 
     return db.session.query(Nutrient).filter(name=name).first()
+
+
+# ------- RecipeNutrient CRUD functions -------
+
+def create_recipe_nutrient(recipe_id, nutrient_id, quantity):
+    """Create and return a new recipe-nutrient link."""
+
+    recipe_nutrient = RecipeNutrient(
+        recipe_id=recipe_id,
+        nutrient_id=nutrient_id,
+        quantity=quantity
+    )
+
+    return recipe_nutrient
+
+
+def get_nutrients_by_recipe_id(recipe_id):
+    """Return all nutrients and their quantities."""
+
+    return db.session.query(RecipeNutrient).filter(recipe_id=recipe_id).all()
+
+
+# ------- MealLog CRUD functions -------
+
+def create_meal_log(user_id, log_date, meal_type):
+    """Create and return a new meal log entry."""
+
+    meal_log = MealLog(
+        user_id=user_id,
+        log_date=log_date,
+        meal_type=meal_type,
+        date_added=datetime.now()
+    )
+
+    return meal_log
+
+
+def get_meal_log_by_user_id_and_date(user_id, log_date):
+    """Return all meal logs for a user on a specific date."""
+
+    return db.session.query(MealLog).filter(user_id=user_id, log_date=log_date).all()
+
+
+def get_meal_log_by_id(meal_log_id):
+    """Return a meal log by its primary key."""
+
+    return db.session.query(MealLog).get(meal_log_id)
+
+
+# ------- MealLogRecipe CRUD functions -------
+
+def add_recipe_to_meal_log(meal_log_id, recipe_id, serving_size):
+    """Add a recipe to an existing meal log."""
+
+    ml_recipe = MealLogRecipe(
+        meal_log_id=meal_log_id,
+        recipe_id=recipe_id,
+        serving_size=serving_size
+    )
+
+    return ml_recipe
+
+
+def get_recipes_in_meal_log(meal_log_id):
+    """Return all recipes for a specific meal log entry."""
+
+    return db.session.query(MealLogRecipe).filter(meal_log_id=meal_log_id).all()
+
+
+
+
 
 
 
