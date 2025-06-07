@@ -143,6 +143,7 @@ class Recipe(db.Model):
     servings = db.Column(db.Float, nullable=False)
     instructions = db.Column(db.Text, nullable=False)
     texture = db.Column(db.String)
+    diets = db.Column(db.JSON) 
     date_added = db.Column(db.DateTime, nullable=False)
 
     meal_plan_recipes = db.relationship("MealPlanRecipe", back_populates="recipe")

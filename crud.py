@@ -271,7 +271,7 @@ def update_reminder(reminder_id, reminder_type=None, reminder_time=None, frequen
 # ------- Recipe CRUD functions -------
 
 # caching from recipes Spoonacular API
-def create_recipe(spoonacular_id, title, source, url, servings, instructions, texture):
+def create_recipe(spoonacular_id, title, source, url, servings, instructions, texture, diets):
     """Create and return a new recipe."""
 
     recipe = Recipe(
@@ -281,7 +281,9 @@ def create_recipe(spoonacular_id, title, source, url, servings, instructions, te
         url=url,
         servings=servings,
         instructions=instructions,
-        texture=texture
+        texture=texture,
+        diets=diets,
+        date_added=datetime.now()
     )
 
     return recipe
@@ -299,99 +301,138 @@ def get_recipe_by_spoonacular_id(spoonacular_id):
     return db.session.query(Recipe).filter(spoonacular_id=spoonacular_id).first()
 
 
-def get_recipes_by_search(user_id, search_term, limit):
+def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
     """Filters recipes based on search term and user's personal info/settings."""
 
     # get user
     user = db.session.query(User).get(user_id)
 
     if not user:
+        print("User not found.")
         return 
     
     # user specific data 
-    ## user allergens
-    user_allergens = set()
-
-    for allergen in user.allergies:
-        user_allergens.add(allergen)
-
-    ## user diet restrictions
-    user_diet_restrictions = set()
-
-    for dr in user.diet_restrictions:
-        user_diet_restrictions.add(dr)
-    
-    ## user nutrtion goals
-    user_nutrition_goals = set()
-
-    for ng in user.nutrition_goals:
-        user_nutrition_goals.add(ng)
-
-    ## user likes -- for extra filtering
-    user_likes = set()
-
-    for like in user.likes_dislikes:
-        if like.preference == "like":
-            user_likes.add(like)
-
-    ## user dislikes 
-    user_dislikes = set()
-
-    for dislike in user.likes_dislikes:
-        if dislike.preference == "dislike":
-            user_dislikes.add(dislike)
-
+    user_allergens = {a.allergen for a in user.allergies} # user allergies 
+    user_diet_restrictions = {dr.diet_restrictions for dr in user.diet_restrictions} # user diet restrictions
+    user_nutrition_goals = {ng.nutrition_goals for ng in user.nutrition_goals} # user nutrtion goals
+    user_likes = {like.likes_dislikes for like in user.likes_dislikes if like.preference == "like"} # user likes -- for extra filtering
+    user_dislikes = {dislike.likes_dislikes for dislike in user.likes_dislikes if dislike.preference == "dislike"} # user dislikes 
 
     # initial query --> where search term is included in a recipe's title OR ingredients
     initial_query = db.session.query(Recipe).join(Recipe.ingredients).filter(
         ((Recipe.title.like(f"%{search_term}%")) | (Ingredient.name.like(f"%{search_term}%")))
     ).distinct()
 
-    current_recipes = initial_query
+    current_filtered_recipes = initial_query
 
     # exclude user allergens
     for allergen in user_allergens:
-        current_recipes = current_recipes.filter(~ Recipe.ingredients.any(Ingredient.name.like(f"%{allergen}%")))
+        current_filtered_recipes = current_filtered_recipes.filter(~Recipe.ingredients.any(Ingredient.name.like(f"%{allergen}%")))
     
     # exclude user dislikes 
     for dislike in user_dislikes:
-        current_recipes = current_recipes.filter(
-            ~ (Recipe.title.like(f"%{dislike}%")) | (Ingredient.name.like(f"%{dislike}%")))
+        current_filtered_recipes = current_filtered_recipes.filter(~Recipe.ingredients.any(Ingredient.name.like(f"{dislike}")))
+
+    # include likes if True
+    if likes and user_likes:
+            # list comprehension to hold all individual OR conditions
+            user_like_conditions = [
+                Recipe.ingredients.any(Ingredient.name.like(f"%{liked_ingredient}%")) 
+                for liked_ingredient in user_likes                   
+            ]
+
+            current_filtered_recipes = current_filtered_recipes.filter(
+                Recipe.or_(*user_like_conditions)
+            )
+
+    #nutritional goal filters
+    for goal in user_nutrition_goals:
+        if goal == "low sugar":
+            # exclude recipes where sugar quantity > 10g per serving
+            current_filtered_recipes = current_filtered_recipes.filter(
+                ~Recipe.recipe_nutrients.any(
+                    (
+                        RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
+                        Nutrient.name.like("%sugar%"),
+                        RecipeNutrient.quantity > 10
+                    )
+                )
+            )
+
+        elif goal == "high protein":
+            # exclude recipes where protein quantity < 20g per serving 
+            current_filtered_recipes = current_filtered_recipes.filter(
+                ~Recipe.recipe_nutrients.any(
+                    (
+                        RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
+                        Nutrient.name.like("%protein%"),
+                        RecipeNutrient.quantity < 20
+                    )
+                )
+            )
         
-    # filter recipes by user nutrition goal
-    # "low sugar"
-    # "high protein"
-    # "high fiber"
-    # "low sodium"
-    # Nutrients table : Sugar, Protein, etc.
+        elif goal == "high fiber":
+            #exclude recipes where fiber quantity < 5g per serving 
+            current_filtered_recipes = current_filtered_recipes.filter(
+                ~Recipe.recipe_nutrients.any(
+                    (
+                        RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
+                        Nutrient.name.like("%fiber%"),
+                        RecipeNutrient.quantity < 5
+                    )
+                )
+            )
+        
+        elif goal == "low sodium":
+            #exclude recipes where sodium quantity > 300mg
+            current_filtered_recipes = current_filtered_recipes.filter(
+                ~Recipe.recipe_nutrients.any(
+                    (
+                        RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
+                        Nutrient.name.like("%sodium%"),
+                        RecipeNutrient.quantity > 300
+                    )
+                )
+            )
+    
+    # diet restirction filters
+    for restriction in user_diet_restrictions:
+        if restriction == "gluten-free":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Gluten Free" in Recipe.diets
+            )
+        elif restriction == "ketogenic":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Ketogenic" in Recipe.diets
+            )
+        elif restriction == "lacto-vegetarian":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Lacto-Vegetarian" in Recipe.diets
+            )
+        elif restriction == "ovo-vegetarian":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Ovo-Vegetarian" in Recipe.diets
+            )
+        elif restriction == "vegetarian":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Vegetarian" in Recipe.diets
+            )
+        elif restriction == "vegan":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Vegan" in Recipe.diets
+            )
+        elif restriction == "pescetarian":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Pescetarian" in Recipe.diets
+            )
+        elif restriction == "paleo":
+            current_filtered_recipes = current_filtered_recipes.filter(
+                "Paleo" in Recipe.diets
+            )
 
-    # filter by user diet restrictions 
-    # "gluten free"
-    # "ketogenic"
-    # "lacto-vegetarian"
-    # "ovo-vegetarian"
-    # "vegetarian"
-    # "vegan"
-    # "pescetarian"
-    # "paleo" , etc.
+    current_filtered_recipes = current_filtered_recipes.order_by(Recipe.title)
 
-    # filter by intolerances??
-    # "dairy" 
-    # "egg" 
-    # "gluten" 
-    # "grain"
-    # "peanut"
-    # "seafood"
-    # "sesame"
-    # "shellfish"
-    # "soy"
-    # "sulfite"
-    # "tree nut"
-    # "wheat"
-
-    # current_recipes = current_recies.order_by(???)
-
-    return current_recipes.limit(limit).all()
+    return current_filtered_recipes.limit(limit).all()
 
 
 # ------- Ingredient CRUD functions -------
@@ -429,6 +470,16 @@ def get_nutrient_by_name(name):
     """Return a nutrient by its name."""
 
     return db.session.query(Nutrient).filter(name=name).first()
+
+def get_or_create_nutrient(name, unit):
+    """Get or create nutreint, then return nutrient."""
+
+    nutrient = get_nutrient_by_name(name)
+
+    if not nutrient:
+        nutrient = create_nutrient(name, unit)
+    
+    return nutrient
 
 
 # ------- RecipeNutrient CRUD functions -------
@@ -537,15 +588,6 @@ def get_recipes_in_meal_plan(meal_plan_id):
     """Return all recipes in a meal plan."""
 
     return db.session.query(MealPlanRecipe).filter(meal_plan_id=meal_plan_id).all()
-
-
-
-
-
-
-
-
-
 
 
 
