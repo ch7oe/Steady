@@ -1,7 +1,7 @@
 """Fetching from Spoonacular API endpoints."""
 import requests
 from datetime import datetime
-from crud import create_recipe, get_recipe_by_spoonacular_id, create_ingredient, create_recipe_nutrient, get_or_create_nutrient
+from crud import db, create_recipe, get_recipe_by_spoonacular_id, create_ingredient, create_recipe_nutrient, get_or_create_nutrient
 import os 
 
 
@@ -21,7 +21,7 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
         'addRecipeNutrition': True,
     }
 
-    # user specific filters
+    # user specific filters 
     if user_allergens:
         spoonacular_params['intolerances'] = ', '.join(user_allergens)
     
@@ -55,10 +55,11 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                 url=recipe.get('sourceUrl', 'N/A'),
                 servings=recipe.get('servings', 1),
                 instructions=recipe.get('instructions', 'No instructions provided'),
-                diets=recipe.get('diets', 'N/A')
+                diets=recipe.get('diets', 'N/A'),
                 texture=None
             )
 
+            db.session.add(new_recipe)
             cached_recipes_from_database.append(new_recipe) # append to list of recipes cached during this fetch
 
             # cache ingredients
@@ -80,8 +81,8 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
 
                     if nutrient_in_recipe: # check if nutrient exists before linking to recipe
                         create_recipe_nutrient(
-                            recipe_id=recipe.recipe_id,
-                            nutrient_id=nutrient.nutrient_id,
+                            recipe_id=new_recipe.recipe_id,
+                            nutrient_id=nutrient_in_recipe.nutrient_id,
                             quantity=nutrient['amount'] # total amount per recipe, not per serving
                         )
 

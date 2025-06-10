@@ -261,7 +261,7 @@ class MealPlanRecipe(db.Model):
 
     meal_plan_id = db.Column(db.Integer, db.ForeignKey("meal_plans.meal_plan_id"), primary_key=True, nullable=False)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id"), primary_key=True, nullable=False)
-    meal_type = db.Column(db.String, nullable=False) # ex. ex. "breakfast" "lunch" "dinner" "snack"
+    meal_type = db.Column(db.String, primary_key=True, nullable=False) # ex. ex. "breakfast" "lunch" "dinner" "snack"
     serving_size = db.Column(db.Float, nullable=False)
 
     recipe = db.relationship("Recipe", back_populates="meal_plan_recipes")

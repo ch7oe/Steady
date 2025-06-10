@@ -16,8 +16,8 @@ def create_user(fname, lname, email, password, weight, swallow_difficulty=False)
     # db.session.commit()
 
     user = User(
-        fname = fname,
-        lname = lname,
+        fname=fname,
+        lname=lname,
         email=email,
         password=password,
         weight=weight,
@@ -44,7 +44,7 @@ def get_user_by_id(user_id):
 def get_user_by_email(email):
     """Return a user by email."""
 
-    return db.session.query(User).filter(User.email == email).first()
+    return db.session.query(User).filter(User.email==email).first()
 
 
 def update_user_profile(user_id, fname=None, lname=None, email=None, password=None, weight=None, swallow_difficulty=None):
@@ -99,7 +99,7 @@ def create_diet_restriction(user_id, restriction):
 def get_diet_restriction_by_user_id(user_id):
     """Return diet restrictions for a given user."""
 
-    return db.session.query(DietaryRestriction).filter(user_id=user_id).all()
+    return db.session.query(DietaryRestriction).filter(User.user_id==user_id).all()
 
 
 # ------- Medication CRUD functions -------
@@ -121,7 +121,7 @@ def create_medication(user_id, name, dosage, frequency, timing):
 def get_medications_by_user_id(user_id):
     """Return all medications for a given user."""
 
-    return db.session.query(Medication).filter(user_id=user_id).all()
+    return db.session.query(Medication).filter(User.user_id==user_id).all()
 
 
 def update_medication(medication_id, name=None, dosage=None, frequency=None, timing=None):
@@ -157,7 +157,7 @@ def create_allergy(user_id, allergen):
 def get_allergies_by_user_id(user_id):
     """Return all allergy by user id."""
 
-    return db.session.query(Allergy).filter(user_id=user_id).all()
+    return db.session.query(Allergy).filter(User.user_id==user_id).all()
 
 
 # ------- NutritionGoal CRUD functions -------
@@ -173,7 +173,7 @@ def create_nutrition_goal(user_id, goal):
 def get_nutrition_goals_by_user_id(user_id):
     """Return all nutrition goals for a given user."""
 
-    return db.session.query(NutritionGoal).filter(user_id=user_id).all()
+    return db.session.query(NutritionGoal).filter(User.user_id==user_id).all()
 
 
 # ------- LikeDislike CRUD functions -------
@@ -193,7 +193,7 @@ def create_like_dislike(user_id, name, preference):
 def get_likes_and_dislikes_by_user_id(user_id):
     """Return all likes/dislikes for a given user."""
     
-    return db.session.query(LikeDislike).filter(user_id=user_id).all()
+    return db.session.query(LikeDislike).filter(User.user_id==user_id).all()
 
 
 def get_likes_or_dislikes_by_user_id(user_id, preference):
@@ -201,19 +201,19 @@ def get_likes_or_dislikes_by_user_id(user_id, preference):
 
     if preference == "like":
 
-        return db.session.query(LikeDislike).filter(user_id=user_id,
-                                                    preference="like")
+        return db.session.query(LikeDislike).filter(User.user_id==user_id,
+                                                    LikeDislike.preference=="like")
     
     elif preference == "dislike":
 
-        return db.session.query(LikeDislike).filter(user_id=user_id,
-                                                    preference="dislike")
+        return db.session.query(LikeDislike).filter(User.user_id==user_id,
+                                                    LikeDislike.preference=="dislike")
     
 
 def update_like_dislike(like_dislike_id, name=None, preference=None):
     """Update and return a user's like or dislike."""
 
-    like_dislike = db.session.query(LikeDislike).filter(like_dislike_id=like_dislike_id)
+    like_dislike = db.session.query(LikeDislike).filter(LikeDislike.like_dislike_id==like_dislike_id)
 
     if not like_dislike:
         return None # like or dislike not found
@@ -245,13 +245,13 @@ def create_reminder(user_id, reminder_type, reminder_time, frequency, message):
 def get_reminders_by_user_id(user_id):
     """Return all reminders for a given user."""
 
-    return db.session.query(Reminder).filter(user_id=user_id).all()
+    return db.session.query(Reminder).filter(User.user_id==user_id).all()
 
 
 def update_reminder(reminder_id, reminder_type=None, reminder_time=None, frequency=None, message=None):
     """Update and return a reminder for a user."""
 
-    reminder = db.session.query(Reminder).filter(reminder_id=reminder_id)
+    reminder = db.session.query(Reminder).filter(Reminder.reminder_id==reminder_id)
 
     if not reminder:
         return None # reminder not found
@@ -298,7 +298,7 @@ def get_recipe_by_id(recipe_id):
 def get_recipe_by_spoonacular_id(spoonacular_id):
     """Return a recipe by Spoonacular id."""
 
-    return db.session.query(Recipe).filter(spoonacular_id=spoonacular_id).first()
+    return db.session.query(Recipe).filter(Recipe.spoonacular_id==spoonacular_id).first()
 
 
 def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
@@ -335,7 +335,7 @@ def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
 
     # include likes if True
     if likes and user_likes:
-            # list comprehension to hold all individual OR conditions
+            # list comprehension to hold all individual likes for OR condition
             user_like_conditions = [
                 Recipe.ingredients.any(Ingredient.name.like(f"%{liked_ingredient}%")) 
                 for liked_ingredient in user_likes                   
@@ -453,7 +453,7 @@ def create_ingredient(recipe_id, name, quantity, unit):
 def get_ingredients_by_recipe_id(recipe_id):
     """Return all ingredients for a given recipe."""
 
-    return db.session.query(Ingredient).filter(recipe_id=recipe_id).all()
+    return db.session.query(Ingredient).filter(Recipe.recipe_id==recipe_id).all()
 
 
 # ------- Nutrient CRUD functions (tracked nutrients defined)-------
@@ -469,7 +469,8 @@ def create_nutrient(name, unit):
 def get_nutrient_by_name(name):
     """Return a nutrient by its name."""
 
-    return db.session.query(Nutrient).filter(name=name).first()
+    return db.session.query(Nutrient).filter(Nutrient.name==name).first()
+
 
 def get_or_create_nutrient(name, unit):
     """Get or create nutreint, then return nutrient."""
@@ -499,7 +500,7 @@ def create_recipe_nutrient(recipe_id, nutrient_id, quantity):
 def get_nutrients_by_recipe_id(recipe_id):
     """Return all nutrients and their quantities."""
 
-    return db.session.query(RecipeNutrient).filter(recipe_id=recipe_id).all()
+    return db.session.query(RecipeNutrient).filter(Recipe.recipe_id==recipe_id).all()
 
 
 # ------- MealLog CRUD functions -------
@@ -520,7 +521,7 @@ def create_meal_log(user_id, log_date, meal_type):
 def get_meal_log_by_user_id_and_date(user_id, log_date):
     """Return all meal logs for a user on a specific date."""
 
-    return db.session.query(MealLog).filter(user_id=user_id, log_date=log_date).all()
+    return db.session.query(MealLog).filter(User.user_id==user_id, MealLog.log_date==log_date).all()
 
 
 def get_meal_log_by_id(meal_log_id):
@@ -546,7 +547,8 @@ def add_recipe_to_meal_log(meal_log_id, recipe_id, serving_size):
 def get_recipes_in_meal_log(meal_log_id):
     """Return all recipes for a specific meal log entry."""
 
-    return db.session.query(MealLogRecipe).filter(meal_log_id=meal_log_id).all()
+    return db.session.query(MealLogRecipe).filter(
+        MealLogRecipe.meal_log_id==meal_log_id).all()
 
 
 # ------- MealPlan CRUD functions -------
@@ -566,7 +568,8 @@ def create_meal_plan(user_id, meal_plan_date):
 def get_meal_plan_by_user_id_and_date(user_id, meal_plan_date):
     """Return a meal plan for a user on a specific date."""
 
-    return db.session.query(MealPlan).filter(user_id=user_id, meal_plan_date=meal_plan_date).first()
+    return db.session.query(MealPlan).filter(
+        User.user_id==user_id, MealPlan.meal_plan_date==meal_plan_date).first()
 
 
 # ------- MealPlanRecipe CRUD functions -------
@@ -587,7 +590,8 @@ def add_recipe_to_meal_plan(meal_plan_id, recipe_id, meal_type, serving_size):
 def get_recipes_in_meal_plan(meal_plan_id):
     """Return all recipes in a meal plan."""
 
-    return db.session.query(MealPlanRecipe).filter(meal_plan_id=meal_plan_id).all()
+    return db.session.query(Recipe).join(MealPlanRecipe).filter(
+        MealPlanRecipe.meal_plan_id==meal_plan_id).all()
 
 
 
