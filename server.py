@@ -7,10 +7,15 @@ import crud
 from jinja2 import StrictUndefined
 
 app = Flask(__name__)
-app.secret_key = 'devtech'
-app.jinja_env.undefined = StrictUndefined
+app.secret_key = 'devtech' # for flask and session
+app.jinja_env.undefined = StrictUndefined # throw errors for undefined variables 
 
 
+@app.route("/")
+def homepage():
+    """View homepage."""
+
+    return render_template("homepage.html")
 
 
 

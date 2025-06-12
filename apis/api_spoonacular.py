@@ -1,4 +1,5 @@
 """Fetching from Spoonacular API endpoints."""
+
 import requests
 from datetime import datetime
 from crud import db, create_recipe, get_recipe_by_spoonacular_id, create_ingredient, create_recipe_nutrient, get_or_create_nutrient
