@@ -18,6 +18,13 @@ def homepage():
     return render_template("homepage.html")
 
 
+@app.route("/register")
+def register():
+    """Process user login."""
+
+    return render_template("register.html")
+
+
 
 
 # if __name__ = "__main__":

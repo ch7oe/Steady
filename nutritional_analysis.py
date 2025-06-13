@@ -2,13 +2,12 @@
 
 from datetime import date, timedelta
 
-from model import User, Recipe, Ingredient, Nutrient, RecipeNutrient, MealPlan, MealLogRecipe, connect_to_db
+from model import connect_to_db
 import crud
 
 
 def calculate_daily_nutrient_intake(user_id, intake_date):
-    """Calculate total nutrient intake for a user on a given date based on their logged meals.
-    
+    """Calculates total nutrient intake for a user on a given date based on their logged meals.
     returns a dictionary (with keys as nutrient names), containing a dictionary (with quantity and unit as keys) 
     """
 
@@ -50,7 +49,7 @@ def calculate_daily_nutrient_intake(user_id, intake_date):
 
                     actual_quantity_eaten = (nutrient_quantity / total_servings_in_recipe) * (serving_size_eaten)
                 else:
-                    actual_quantity_eaten = 0.0 # default to zero if original servings zero or not provided 
+                    actual_quantity_eaten = 0.0  # default to zero if original servings zero or not provided 
 
                 if nutrient_name not in daily_nutrient_intake: 
                     # add nutrient quanity for the day with its quantity and unit to daily_nutrient_intake dictionary
@@ -58,6 +57,31 @@ def calculate_daily_nutrient_intake(user_id, intake_date):
                     daily_nutrient_intake[nutrient_name]["quantity"] += actual_quantity_eaten
 
     return daily_nutrient_intake
+
+
+# def get_nutrition_analysis_over_period(user_id, start_date, end_date):
+#     """Calculates the average daily nutrient intake for a user over a given time period.
+#     returns a dictionary of average daily nutrient intake (with keys as  
+#     """
+
+     
+#     nutrient_intake_over_period = {}  # will store average daily nutrient intake over a time period
+#     days_with_logs = 0  # to count number of days with logs to divide by to get average daily nutrient intake 
+
+
+#     current_date = start_date # date time period starts 
+#     while current_date <= end_date: 
+#         daily_summary = calculate_daily_nutrient_intake(user_id, current_date)
+
+#         if daily_summary: # only count days with recipe logs
+#             days_with_logs += 1
+
+#             for nutrient_name, 
+            
+
+
+    
+
 
 
 
