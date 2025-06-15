@@ -81,6 +81,7 @@ def login_user():
     return render_template("login.html")
 
 
+# @app.route("/dashboard"):
 
 
 
@@ -91,7 +92,6 @@ def login_user():
 
 
 # @app.route("/logout", methods=[])
-# @app.route("/dashboard")
 
 
 
