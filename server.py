@@ -31,6 +31,20 @@ def register():
         weight = request.form.get("weight")
 
         existing_user = crud.get_user_by_email(email)
+        if existing_user: # check is user already exists
+            flash("An account with this email already exists. Please login.")
+            return redirect("/login")
+        else:
+            new_user = crud.create_user(
+                fname=fname,
+                lname=lname,
+                email=email,
+                password=password,
+                swallow_difficulty=swallow_difficulty,
+                weight=weight
+            )
+
+
 
     return render_template("register.html")
 

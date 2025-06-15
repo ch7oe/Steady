@@ -2,24 +2,21 @@
 
 from model import db, User, DietaryRestriction, Medication, Allergy, NutritionGoal, LikeDislike, Reminder, Recipe, Ingredient, Nutrient, RecipeNutrient, MealLog, MealLogRecipe, MealPlan, MealPlanRecipe, connect_to_db
 from datetime import datetime
+from passlib.hash import argon2
 
 # ------- User CRUD functions -------
 
-def create_user(fname, lname, email, password, weight, swallow_difficulty=False):
+def create_user(fname, lname, email, raw_password, weight, swallow_difficulty=False):
     """Create and return a new user."""
 
-    # test: 
-    # user = create_user("chloe", "nixon", "cnixon@gmail.com", "pass1234", 150)
-    # user_2 = create_user("coffee", "brew", "cnixonnixon@gmail.com", "fun", 122)
-    # db.session.add(user)
-    # db.session.add(user_2)
-    # db.session.commit()
+    # hash password before storing
+    hashed_password = argon2.hash(raw_password)
 
     user = User(
         fname=fname,
         lname=lname,
         email=email,
-        password=password,
+        hash_password=hashed_password,
         weight=weight,
         signup_date=datetime.now(),
         swallow_difficulty=swallow_difficulty
@@ -27,6 +24,12 @@ def create_user(fname, lname, email, password, weight, swallow_difficulty=False)
     )
 
     return user
+
+
+def verify_password(raw_password, hashed_password):
+    """Verify raw password against hashed password in database."""
+
+    return argon2.verify(raw_password, hashed_password) # boolean value
     
 
 def get_users():
