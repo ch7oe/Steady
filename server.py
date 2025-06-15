@@ -18,16 +18,30 @@ def homepage():
     return render_template("homepage.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    """Process user login."""
+    """Create a new user."""
+
+    if request.method == "POST":
+        fname = request.form.get("fname")
+        lname = request.form.get("lname")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        swallow_difficulty = request.form.get("swallow-diff")
+        weight = request.form.get("weight")
+
+        existing_user = crud.get_user_by_email(email)
 
     return render_template("register.html")
 
 
 
 
-# if __name__ = "__main__":
+
+
+if __name__ == "__main__":
+    connect_to_db(app)
+    app.run(host="0.0.0.0", debug=True, port=6060)
 
 
 

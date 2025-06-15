@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}Steady{% endblock %}</title>
 
     <!-- link for stylesheet / get uniform style through app -->
     {% block head %}{% endblock %}
 </head>
 <body>
-    {% for msg in get_flashed_mesages() %}
+    {% for msg in get_flashed_messages() %}
         <p class="flash-msg">
             {{ msg }}
         </p>
     {% endfor %}
 
-    {% block body %}{% endblock %}
-    {% block after_body %}{% endblock %}
+    {% block body %}
+    {% endblock %}
+
+    {% block after_body %}
+    {% endblock %}
 </body>
 </html>

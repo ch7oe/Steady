@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up! - Steady{% endblock %}
+
+{% block body %}
+    <h1>Create Account</h1>
+
+    <!-- form to create user -->
+    <form action="/register" method="POST">
+        <!-- first name -->
+        <div>
+            <label for="fname">First Name</label> 
+            <input type="text" name="fname" id="fname">
+        </div>    
+
+        <!-- last name -->
+        <div>
+            <label for="lname">Last Name</label> 
+            <input type="text" name="lname" id="lname">
+        </div>
+
+        <!-- email -->
+        <div>
+            <label for="email">Email</label> 
+            <input type="email" name="email" id="email">
+        </div>
+
+        <!-- password -->
+        <div>
+            <label for="password">Password</label> 
+            <input type="password" name="password" id="password">
+        </div>
+
+        <!-- swallow difficulty -->
+        <div>
+            <label for="swallow-diff">Do you have swallow difficulty?</label> 
+            <input type="radio" name="swallow-diff" value="true" id="swallow-diff">Yes
+            <input type="radio" name="swallow-diff" value="false" id="swallow-diff">No
+        </div>
+
+        <!-- weight -->
+        <div>
+            <label for="weight">How much do you weigh?</label> 
+            <input type="number" name="weight" id="weight">
+        </div>
+
+        <!-- submit -->
+        <button type="submit">Create Account</button>
+    </form>
+    <p>
+        If you already have an account, login <a href="/login">here</a>
+    </p>
+
+{% endblock %}
