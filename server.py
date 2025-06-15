@@ -2,7 +2,9 @@
 
 from flask import Flask, render_template, request, flash, session, redirect
 from model import connect_to_db, db
+from datetime import date
 import crud
+from nutritional_analysis import calculate_daily_nutrient_intake
 
 from jinja2 import StrictUndefined
 
@@ -81,9 +83,40 @@ def login_user():
     return render_template("login.html")
 
 
-# @app.route("/dashboard"):
+@app.route("/dashboard")
+def dashboard():
+    """Display a user's dashboard."""
 
+    user_id = session.get("user_id") # check if user logged in 
 
+    if not user_id: # if user not logged in
+        flash("Log in to view dashboard")
+        return redirect("/login")
+    
+    user = crud.get_user_by_id(user_id)
+
+    # today's meal plan
+    meal_plan_today = crud.get_meal_plan_by_user_id_and_date(user.user_id, date.today())
+    planned_recipes_today = []
+
+    if meal_plan_today: # if user has a meal plan today
+        # get recipes in meal plan
+        planned_recipes_today = crud.get_recipes_in_meal_plan(meal_plan_today.meal_plan_id)
+
+    # today's nutrition analysis
+    today_nutrition = calculate_daily_nutrient_intake(user.user_id, date.today())
+
+    # recent/today's meal logs
+    today_meal_logs = crud.get_meal_log_by_user_id_and_date(user.user_id, date.today())
+
+    return render_template(
+        "dashboard.html",
+        user=user,
+        meal_plan_today=meal_plan_today,
+        planned_recipes_today=planned_recipes_today,
+        today_nutrition=today_nutrition,
+        today_meal_logs=today_meal_logs
+    )
 
 
 
