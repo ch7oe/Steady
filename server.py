@@ -64,12 +64,34 @@ def login_user():
         email = request.form.get("email")
         raw_password = request.form.get("password") 
 
-        user = crud.get_user_by_email(email)
+        user = crud.get_user_by_email(email) # verify a user with given email
+
+        # verify raw password against user's stored hashed password
+        verify_password = crud.verify_password(raw_password, user.hashed_password)
 
         if not user: # if no user with given email exists
+            flash("Account not found.")
+            redirect("/login")
+        
+        if verify_password: # if correct password
+            session["user_id"] = user.user_id # login user
+            flash(f"Hello, {user.fname}! 🌻")
+            redirect("/dashboard")
+    
+    return render_template("login.html")
 
 
-@app.route("/dashboard")
+
+
+
+
+
+
+
+
+
+# @app.route("/logout", methods=[])
+# @app.route("/dashboard")
 
 
 
