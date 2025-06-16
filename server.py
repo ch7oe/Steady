@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, flash, session, redirect
 from model import connect_to_db, db
-from datetime import date
+from datetime import date, timedelta
 import crud
 from nutritional_analysis import calculate_daily_nutrient_intake
 
@@ -118,6 +118,53 @@ def dashboard():
         today_meal_logs=today_meal_logs
     )
 
+
+@app.route("/meal-plan")
+def view_meal_plan():
+    """Display weekly meal plan."""
+    
+    user_id = session.get("user_id")
+
+    if not user_id:
+        flash("Log in to view meal plans.")
+        return redirect("/login")
+    # implement "previous/next week" from request.args and adjust week start
+
+    # calculate start and end of the week
+    week_start = date.today() - timedelta(days=date.today().weekday())
+    week_end = week_start + timedelta(days=6)
+
+    # get meal plans for the week
+    weekly_meal_plan_info = {} # dictionary of dates, each containing a dict of meal types
+    
+    current_day_in_week = week_start # used to increment to end while loop 
+    
+    while current_day_in_week <= week_end:
+        weekly_meal_plan_info[current_day_in_week] = {
+            "breakfast": [], "lunch": [], "dinner": [], "snack": [],
+        }
+
+        # get meal plan for this specific day 
+        meal_plan_today = crud.get_meal_plan_by_user_id_and_date(user_id, current_day_in_week)
+
+        if meal_plan_today:
+            # get MealPlanRecipes for this specific day - has .recipe relationship
+            meal_plan_recipes = crud.get_recipes_in_meal_plan(meal_plan_today.meal_plan_id)
+
+            for planned_recipe in meal_plan_recipes: # for each recipe in in meal plan for today
+                if planned_recipe.meal_type in weekly_meal_plan_info[current_day_in_week]: 
+                    # add each recipe from meal plan to week meal plan info dict according to its meal type 
+                    weekly_meal_plan_info[current_day_in_week][planned_recipe.meal_type].append(planned_recipe)
+
+        current_day_in_week += timedelta(days=1) # counter to stop while loop when current day is after end date 
+
+    render_template(
+        "meal_plan_view.html",
+        week_start=week_start,
+        week_end=week_end,
+        weekly_meal_plan_info=weekly_meal_plan_info
+    )            
+    
 
 
 
