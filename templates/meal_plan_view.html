@@ -1,0 +1,45 @@
+{% extends 'base.html'%}
+
+{% title block %}Weekly Meal Plan - Steady{% endblock %}
+
+{% body block %}
+    <div>
+        <h1>Your Weekly Meal Plan</h1>
+        <p>
+            Meals planned from {{ week_start.strftime('%B %d') }} to {{ week_end.strftime('%B %d, %Y') }}
+        </p>
+    </div>
+
+    <!-- meal plan grid -->
+    <div>
+        <!-- loop through each day, to get meal plans for each day -->
+        {% for day_date, meal_for_day in weekly_meal_plan_info.items() %}
+            <h3>
+                {{ day_date.strftime('%A') }} - <span>{{ '%b %d' }}</span>
+            </h3>
+            <div>
+                {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
+                {% for meal_type in meal_types %}
+                    <div>
+                        <h4>{{ meal_type }}:</h4>
+                        <!-- check if any recipes planned for this meal type -->
+                        {% if meal_for_day[meal_type] %} 
+                            <ul>
+                                <!-- loop through each recipe for this meal type -->
+                                {% for recipe in meal_for_day[meal_type] %}
+                                    <li>
+                                        <a href="{{ recipe.recipe.url }}">{{ recipe.recipe.title }}</a> 
+                                    </li>
+                                {% endfor %}     
+                            </ul>
+                        {% else %}
+                            <p>Not planned.</p>
+                        {% endif %}
+                    </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div>
+        <a href="/meal-plan-edit">Add/Edit Meals</a>
+    </div>
+{% endblock %}
