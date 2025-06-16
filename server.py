@@ -121,7 +121,7 @@ def dashboard():
 
 @app.route("/meal-plan")
 def view_meal_plan():
-    """Display weekly meal plan."""
+    """Display a user's weekly meal plan."""
     
     user_id = session.get("user_id")
 
