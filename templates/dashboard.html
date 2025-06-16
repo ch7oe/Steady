@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% title block %}Dashboard - Steady{% endblock %}
+
+{% body block %}
+    <!-- welcome  -->
+    <div>
+        <h1 id="greeting"></h1>
+        <p></p>
+    </div>
+
+    <!-- today's meal plan -->
+    <div>
+        <h2>Today's Meal Plan</h2>
+        {% if meal_plan_today and planned_recipes_today %}
+            <ul>
+                {% for recipe in planned_recipes_today %}
+                    <li>
+                        <span>{{ recipe.meal_type }}:</span> <span>{{ recipe.title }}</span> 
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="/meal-plan">View/Edit Meal Plan</a>
+        {% else %}
+            <p>No meal plans for today.</p>
+            <a href="/meal-plan">Create Meal Plan for Today</a>
+        {% endif %}
+    </div>
+
+    <!-- today's nutrition analysis -->
+    <div>
+        <h2>Today's Nutrition</h2>
+        {% if today_nutrition %}
+            <ul>
+                {% for nutrient, info in today_nutrition.items() %}
+                    <li>
+                        <span>{{ nutrient }}:</span> <span>{{ info[quantity] }}{{ info[unit] }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="/nutrition-analysis">Full Nutrition Report</a>
+        {% else %}
+            <p>Log meals to see today's nutrition!</p>
+            <a href="/log-meal">Log a Meal</a>
+        {% endif %}
+    </div>
+
+    <!-- upcoming reminders -->
+    <div>
+        <h2>Reminders</h2>
+        <p>
+            upcoming reminders will be here in the next update!
+        </p>
+        <a href="/reminders">Edit Reminders</a>
+    </div>
+
+    <!-- links -->
+    <div>
+        <a>Log New Meal</a>
+        <a>Plan Next Meal</a>
+        <a>View Grocery List</a>
+        <a>Update Profile</a>
+    </div>
+{% endblock %}
+
+{% block after_body %}
+    <script>
+        // greeting based on time of day
+        document.addEventListener()
+    </script>
+{% endblock %}
