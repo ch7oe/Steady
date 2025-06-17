@@ -29,7 +29,7 @@ def register():
         lname = request.form.get("lname")
         email = request.form.get("email")
         raw_password = request.form.get("password")
-        swallow_difficulty = request.form.get("swallow-diff")
+        # swallow_difficulty = request.form.get("swallow-diff")
         weight = request.form.get("weight")
 
         existing_user = crud.get_user_by_email(email)
@@ -43,7 +43,7 @@ def register():
                 lname=lname,
                 email=email,
                 raw_password=raw_password,
-                swallow_difficulty=swallow_difficulty,
+                swallow_difficulty=None,
                 weight=weight
             )
             db.session.add(new_user)
@@ -73,12 +73,12 @@ def login_user():
 
         if not user: # if no user with given email exists
             flash("Account not found.")
-            redirect("/login")
+            return redirect("/login")
         
         if verify_password: # if correct password
             session["user_id"] = user.user_id # login user
             flash(f"Hello, {user.fname}! 🌻")
-            redirect("/dashboard")
+            return redirect("/dashboard")
     
     return render_template("login.html")
 
