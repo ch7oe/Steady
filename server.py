@@ -198,9 +198,9 @@ def meal_plan_add_edit(date_string):
     meal_plan_recipes = crud.get_recipes_in_meal_plan(meal_plan.meal_plan_id)
 
     # add each recipe in meal plan to current_planned_meals_for_day dictionary 
-    for recipe in meal_plan_recipes: 
-        if recipe.meal_type in current_planned_meals_for_day:
-            current_planned_meals_for_day[recipe.meal_type].append(recipe)
+    for meal_plan_recipe in meal_plan_recipes: 
+        if meal_plan_recipe.meal_type in current_planned_meals_for_day:
+            current_planned_meals_for_day[meal_plan_recipe.meal_type].append(meal_plan_recipe)
     
     return render_template(
         "meal_plan_add_edit.html",
