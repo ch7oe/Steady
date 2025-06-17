@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
-{% title block %}Dashboard - Steady{% endblock %}
+{% block title %}Dashboard - Steady{% endblock %}
 
-{% body block %}
+{% block body %}
     <!-- welcome  -->
     <div>
         <h1 id="greeting"></h1>
@@ -14,9 +14,9 @@
         <h2>Today's Meal Plan</h2>
         {% if meal_plan_today and planned_recipes_today %}
             <ul>
-                {% for recipe in planned_recipes_today %}
+                {% for planned_recipes in planned_recipes_today %}
                     <li>
-                        <span>{{ recipe.meal_type }}:</span> <span>{{ recipe.title }}</span> 
+                        <span>{{ planned_recipes.meal_type }}:</span> <span>{{ planned_recipes.recipe.title }}</span> 
                     </li>
                 {% endfor %}
             </ul>
@@ -34,7 +34,7 @@
             <ul>
                 {% for nutrient, info in today_nutrition.items() %}
                     <li>
-                        <span>{{ nutrient }}:</span> <span>{{ info[quantity] }}{{ info[unit] }}</span>
+                        <span>{{ nutrient }}:</span> <span>{{ info["quantity"] }}{{ info["unit"] }}</span>
                     </li>
                 {% endfor %}
             </ul>
@@ -65,7 +65,7 @@
 
 {% block after_body %}
     <script>
-        // greeting based on time of day
-        document.addEventListener()
+        // // greeting based on time of day
+        // document.addEventListener()
     </script>
 {% endblock %}

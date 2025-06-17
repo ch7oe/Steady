@@ -24,7 +24,7 @@ user1 = crud.create_user(
     fname="Chloe",
     lname="Nixon", 
     email="chloe@gmail.com", 
-    password="password123", 
+    raw_password="password123", 
     swallow_difficulty=False,
     weight=150 
 )
@@ -33,7 +33,7 @@ user2 = crud.create_user(
     fname="Court",
     lname="Yellow", 
     email="court@gmail.com", 
-    password="password456", 
+    raw_password="password456", 
     swallow_difficulty=False,
     weight=175
 )
@@ -42,7 +42,7 @@ user3 = crud.create_user(
     fname="Jade",
     lname="Doe", 
     email="jade@gmail.com", 
-    password="password789", 
+    raw_password="password789", 
     swallow_difficulty=False,
     weight=130 
 )
