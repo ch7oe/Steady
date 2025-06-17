@@ -158,7 +158,7 @@ def view_meal_plan():
 
         current_day_in_week += timedelta(days=1) # counter to stop while loop when current day is after end date 
 
-    render_template(
+    return render_template(
         "meal_plan_view.html",
         week_start=week_start,
         week_end=week_end,

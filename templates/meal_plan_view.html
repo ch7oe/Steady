@@ -15,7 +15,7 @@
         <!-- loop through each day, to get meal plans for each day -->
         {% for day_date, meal_for_day in weekly_meal_plan_info.items() %}
             <h3>
-                {{ day_date.strftime('%A') }} - <span>{{ '%b %d' }}</span>
+                {{ day_date.strftime('%A') }} - <span>{{ day_date.strftime('%b %d') }}</span>
             </h3>
             <div>
                 {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
@@ -36,6 +36,7 @@
                             <p>Not planned.</p>
                         {% endif %}
                     </div>
+                {% endfor %}    
             </div>
         {% endfor %}
     </div>
