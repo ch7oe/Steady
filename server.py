@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, flash, session, redirect
 from model import connect_to_db, db
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import crud
 from nutritional_analysis import calculate_daily_nutrient_intake
 
@@ -166,7 +166,55 @@ def view_meal_plan():
     )
 
 
-# 
+@app.route("/meal-plan/edit/<date_string>")
+def meal_plan_add_edit(date_string):
+    """Display page to add/edit meals for a specific date.
+    <date_string> in YYYY-MM-DD format.
+    """
+
+    user_id = session.get("user_id") # verify user logged in 
+    if not user_id:
+        flash("Login to manage meal plans.")
+        return redirect("/login")
+    
+    user = crud.get_user_by_id(user_id)
+    
+    # convert date string to datetime object and then discard time info
+    target_date = datetime.strptime(date_string, "%Y-%m-%d").date()
+    
+    # MealPlan object for target date
+    meal_plan = crud.get_meal_plan_by_user_id_and_date(user_id, target_date)
+
+    if not meal_plan: # create new meal plan, if no meal plan for target date exists
+        meal_plan = crud.create_meal_plan(user_id, target_date)
+        db.session.add(meal_plan)
+        db.session.commit()
+    
+    current_planned_meals_for_day = {
+        "breakfast": [], "lunch": [], "dinner": [], "snack": [],
+    }
+
+    # MealPlanRecipe objects from meal plan
+    meal_plan_recipes = crud.get_recipes_in_meal_plan(meal_plan.meal_plan_id)
+
+    # add each recipe in meal plan to current_planned_meals_for_day dictionary 
+    for recipe in meal_plan_recipes: 
+        if recipe.meal_type in current_planned_meals_for_day:
+            current_planned_meals_for_day[recipe.meal_type].append(recipe)
+    
+    return render_template(
+        "meal_plan_add_edit.html",
+        user=user,
+        target_date=target_date,
+        current_planned_meals_for_day=current_planned_meals_for_day    
+    )
+
+
+    
+    
+
+
+
 
     
 
