@@ -593,9 +593,7 @@ def add_recipe_to_meal_plan(meal_plan_id, recipe_id, meal_type, serving_size):
 def get_recipes_in_meal_plan(meal_plan_id):
     """Return all recipes in a meal plan."""
 
-    return db.session.query(Recipe).join(MealPlanRecipe).filter(
-        MealPlanRecipe.meal_plan_id==meal_plan_id).all()
-
+    return db.session.query(MealPlanRecipe).filter(MealPlanRecipe.meal_plan_id==meal_plan_id).all()
 
 
 
