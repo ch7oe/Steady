@@ -8,6 +8,9 @@
         <p>
             Meals planned from {{ week_start.strftime('%B %d') }} to {{ week_end.strftime('%B %d, %Y') }}
         </p>
+        <div>
+            <a href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Add/Edit Meals</a>
+        </div>
     </div>
 
     <!-- meal plan grid -->
