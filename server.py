@@ -210,7 +210,7 @@ def meal_plan_add_edit(date_string):
         current_planned_meals_for_day=current_planned_meals_for_day    
     )
 
-# api for adding recipe to meal plan (AJAX POST)
+# api for adding recipe to meal plan (AJAX POST) #
 @app.route("/api/meal-plan/add", methods=["POST"])
 def add_recipe_to_meal_plan():
     """Add recipe to meal plan."""

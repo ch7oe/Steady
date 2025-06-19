@@ -86,9 +86,30 @@
         const filterLikesCheckbox = document.querySelector("#filter-likes")
 
         // fetch and display recipes
-        const queryRecipeSearch = recipeSearchInput.value.trim();
-        if (!queryRecipeSearch) {
-            recipeSearchResultDiv.textContent = "<p>Please enter search term.</p>"
-        }
+        // const queryRecipeSearch = recipeSearchInput.value.trim();
+        // if (!queryRecipeSearch) {
+        //     recipeSearchResultDiv.textContent = "Please enter search term."
+        // };
+
+        recipeSearchBttn.addEventListener("click", (evt) => {
+            const queryRecipeSearch = recipeSearchInput.value.trim();
+            if (!queryRecipeSearch) {
+                recipeSearchResultDiv.textContent = "Please enter search term."
+                return;
+            };
+
+            // check if "likes" filter is active
+            const likesFilter = filterLikesCheckbox.checked;
+
+            // show loading message
+            recipeSearchResultDiv.textContent = "Searching..."
+
+            const params = new URLSearchParams({
+                query: queryRecipeSearch,
+                likes: likesFilter
+            });
+
+            const response = 
+        });
     </script>
 {% endblock %}
