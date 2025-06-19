@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Recipe Search - Steady{% endblock %}
+
+{% block body %}
+    <div>
+        <h1>Discover New Recipes</h1>
+        <p>
+            Search by keyword and filter by your personalized settings.
+        </p>
+
+        <!-- recipe search input and search button -->
+        <div>
+            <div>
+                <label for="recipe-search-input">Recipe Search</label>
+                <input type="text" name="recipe-search" id="recipe-search-input" placeholder="Search for recipes (ex. 'chicken soup')">
+                <button id="recipe-search-button">
+                    Search
+                </button>
+            </div>
+        </div>
+
+        <!-- basic filter options - add more when make updates-->
+        <div>
+            <span>Filters:</span>
+            <label for="filter-likes">
+                <span>Show My Likes Ingredients</span>
+            </label>
+            <input type="checkbox" name="filter-likes" id="filter-likes">
+        </div> 
+
+        <!-- display recipe search results  -->
+        <div id="search-results">
+            <!-- search results inserted by javascript -->
+            <p>Enter a search term to find recipes.</p>
+        </div> 
+    </div>
+{% endblock %}
+
+
+
+{% block after_body %}
+{% endblock %}
