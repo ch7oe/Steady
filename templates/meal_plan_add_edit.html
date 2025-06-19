@@ -7,9 +7,9 @@
 {% block body %}
     <div>
         <h1>
-            Plan Meals for target_date.strftime("%A, %B, %d, %Y")
+            Plan Meals for {{ target_date.strftime("%A, %B, %d, %Y") }}
         </h1>
-        <p>Add or remove recipes for your meal plan on this day.</p>
+        <p>Add or remove recipes for your meal plan.</p>
     </div>
     
     <!-- current planned meals for this day -->
@@ -17,8 +17,8 @@
         <h2>
             Currently Planned:
         </h2>
-        {set meal_types = ['breakfast', 'lunch', 'dinner', 'snack']}
-        {if current_planned_meals_for_day }
+        {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
+        {% if current_planned_meals_for_day %}
             {% for meal_type in meal_types %}
                 <div>
                     <h3>{{ meal_type }}:</h3>
@@ -52,7 +52,7 @@
         <div>
             <label for="recipe-search-input">Recipe Search</label>
             <input type="text" name="recipe-search" id="recipe-search-input" placeholder="Search for recipes (ex. 'chicken soup')">
-            <button>
+            <button id="recipe-search-button">
                 Search
             </button>
         </div>
@@ -67,7 +67,7 @@
         </div>
 
         <!-- recipe search results -->
-        <div>
+        <div id="search-results">
             <!-- search results will be inserted here by javascript (AJAX -->
             <p>Start searching to find recipes 🍽️</p>
         </div>
@@ -75,5 +75,20 @@
 {% endblock %}
 
 {% block after_body %}
+    <script>
+        // get target date string 
+        const targetDate = "{{ target_date.strftime('%Y-%m-%d') }}";
+        
+        // grab DOM elements 
+        const recipeSearchInput = document.querySelector("#recipe-search-input");
+        const recipeSearchBttn = document.querySelector("#recipe-search-button");
+        const recipeSearchResultDiv = document.querySelector("#search-results");
+        const filterLikesCheckbox = document.querySelector("#filter-likes")
 
+        // fetch and display recipes
+        const queryRecipeSearch = recipeSearchInput.value.trim();
+        if (!queryRecipeSearch) {
+            recipeSearchResultDiv.textContent = "<p>Please enter search term.</p>"
+        }
+    </script>
 {% endblock %}

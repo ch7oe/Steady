@@ -1,7 +1,7 @@
 """Server for Parkinson's app."""
 
-from flask import Flask, render_template, request, flash, session, redirect
-from model import connect_to_db, db
+from flask import Flask, render_template, request, flash, session, redirect, jsonify 
+from model import connect_to_db, db, MealPlanRecipe
 from datetime import date, timedelta, datetime
 import crud
 from nutritional_analysis import calculate_daily_nutrient_intake
@@ -210,17 +210,52 @@ def meal_plan_add_edit(date_string):
         current_planned_meals_for_day=current_planned_meals_for_day    
     )
 
+# api for adding recipe to meal plan (AJAX POST)
+@app.route("/api/meal-plan/add", methods=["POST"])
+def add_recipe_to_meal_plan():
+    """Add recipe to meal plan."""
 
-# @app.route("/api/meal-plan/add", methods=["POST"])
-# def add_recipe_to_meal_plan():
-#     """Add recipe to meal plan."""
-
-#     user_id = session.get("user_id")
-#     if not user_id:
-#         flash("Login to view and edit meal plan.")
-#         return redirect("/login")
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Login to view and edit meal plan.")
+        return redirect("/login")
     
+    meal_plan_date_string = request.json.get("meal_plan_date") # string YYYY-MM-DD
+    recipe_id = request.json.get("recipe_id")
+    meal_type = request.json.get("meal_type")
+    serving_size = request.json.get("serving_size")
 
+    meal_plan_date = datetime.strptime(meal_plan_date_string, "%Y-%m-%d").date()
+
+    meal_plan_object = crud.get_meal_plan_by_user_id_and_date(user_id, meal_plan_date)
+
+    if not meal_plan_object:
+        meal_plan_object = crud.create_meal_plan(user_id, meal_plan_date)
+    
+    if not meal_plan_date_string and recipe_id and meal_type and serving_size:
+        return jsonify({"message": "Missing required data"})
+    
+    # check if recipe for meal type already exists in the plan
+    existing_recipe = db.session.query(MealPlanRecipe).filter(
+        MealPlanRecipe.meal_plan_id == meal_plan_object.meal_plan_id,
+        MealPlanRecipe.meal_type == meal_type,
+        MealPlanRecipe.recipe_id == recipe_id 
+    )
+
+    if existing_recipe:
+        return jsonify({"message": "Recipe already exist for this meal type on this day"})
+    else:
+        # if recipe doesnt alrady exist for meal type on this day
+        new_recipe_entry = crud.add_recipe_to_meal_plan(
+            meal_plan_object.meal_plan_id,
+            recipe_id,
+            meal_type,
+            serving_size
+        )
+        db.session.add(new_recipe_entry)
+        db.session.commit()
+
+        return jsonify({"message": f"Recipe added to {meal_type} plan!"})
 
     
     
