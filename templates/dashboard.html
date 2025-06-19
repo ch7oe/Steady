@@ -5,7 +5,8 @@
 {% block body %}
     <!-- welcome  -->
     <div>
-        <h1 id="greeting"></h1>
+        <!-- greeting added by javascript depending on time of day -->
+        <h1 id="dashboard-greeting"></h1>
         <p></p>
     </div>
 
@@ -65,7 +66,25 @@
 
 {% block after_body %}
     <script>
-        // // greeting based on time of day
-        // document.addEventListener()
+        // greeting based on time of day
+        document.addEventListener("DOMContentLoaded", () => {
+            const greetingDashboard = document.querySelector("#dashboard-greeting");
+            const userDashboard = "{{ user.fname }}";
+
+            if (greetingDashboard) {
+                const hour = new Date().getHours;
+                let greetingPrefix;
+                if (hour < 12) {
+                    greetingPrefix = "Good morning, ";
+                } else if (hour < 18) {
+                    greetingPrefix = "Good evening, ";
+                } else {
+                    greetingPrefix = "Good evening. ";
+                }
+                greetingDashboard.textContent = greetingPrefix + userDashboard + "!";
+            }
+        });
+    
+
     </script>
 {% endblock %}

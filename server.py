@@ -67,11 +67,12 @@ def login_user():
         raw_password = request.form.get("password") 
 
         user = crud.get_user_by_email(email) # verify a user with given email
-
+        
         # verify raw password against user's stored hashed password
-        verify_password = crud.verify_password(raw_password, user.hashed_password)
+        if user:
+            verify_password = crud.verify_password(raw_password, user.hashed_password)
 
-        if not user: # if no user with given email exists
+        if not user or not verify_password: # if no user found with email and raw password
             flash("Account not found.")
             return redirect("/login")
         
@@ -208,6 +209,17 @@ def meal_plan_add_edit(date_string):
         target_date=target_date,
         current_planned_meals_for_day=current_planned_meals_for_day    
     )
+
+
+# @app.route("/api/meal-plan/add", methods=["POST"])
+# def add_recipe_to_meal_plan():
+#     """Add recipe to meal plan."""
+
+#     user_id = session.get("user_id")
+#     if not user_id:
+#         flash("Login to view and edit meal plan.")
+#         return redirect("/login")
+    
 
 
     
