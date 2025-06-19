@@ -258,7 +258,19 @@ def add_recipe_to_meal_plan():
         return jsonify({"message": f"Recipe added to {meal_type} plan!"})
 
     
+@app.route("/recipes/search")
+def get_recipe_search_page():
+    """Display standalone recipe search page."""
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        flash("Login to search recipes.")
+        return redirect("/login")
     
+    user = crud.get_user_by_id(user_id)
+
+    return render_template("recipe_search.html", user=user)
 
 
 

@@ -85,11 +85,6 @@
         const recipeSearchResultDiv = document.querySelector("#search-results");
         const filterLikesCheckbox = document.querySelector("#filter-likes")
 
-        // fetch and display recipes
-        // const queryRecipeSearch = recipeSearchInput.value.trim();
-        // if (!queryRecipeSearch) {
-        //     recipeSearchResultDiv.textContent = "Please enter search term."
-        // };
 
         recipeSearchBttn.addEventListener("click", (evt) => {
             const queryRecipeSearch = recipeSearchInput.value.trim();
@@ -101,7 +96,7 @@
             // check if "likes" filter is active
             const likesFilter = filterLikesCheckbox.checked;
 
-            // show loading message
+            // show a loading message to user
             recipeSearchResultDiv.textContent = "Searching..."
 
             const params = new URLSearchParams({
@@ -109,7 +104,11 @@
                 likes: likesFilter
             });
 
-            const response = 
+            fetch(`//api/recipes/search?${params.toString()}`);
+
+            
         });
+
+        
     </script>
 {% endblock %}
