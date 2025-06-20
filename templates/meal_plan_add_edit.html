@@ -109,6 +109,11 @@
                 .then((responseJson) => {
                     recipeSearchResultDiv.innerHTML = "";
 
+                    if (responseJson.message) {
+                        recipeSearchResultDiv.innerHTML = `<p>${responseJson.message}</p>`;
+                        return;
+                    }
+
                     if (responseJson.length === 0) {
                         recipeSearchResultDiv.innerHTML = "<p>No recipes found matching criteria.</p>";
                     } else {

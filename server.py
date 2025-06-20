@@ -292,7 +292,7 @@ def api_search_recipes():
 
     # get filter parameters ("true" or "false") 
     likes_filter = request.args.get("likes")
-    
+
 
     if not search_term:
         return jsonify([]) # return empty list if no search term 
@@ -314,8 +314,6 @@ def api_search_recipes():
         user_diet_restrictions=user_diet_restrictions,
         user_allergens=user_allergens
     ) 
-    db.session.add_all(cached_recipes_spoonacular)
-    db.sesison.commit()
 
     filtered_recipes_from_db = crud.get_recipes_by_search(
         user_id=user_id,
@@ -325,7 +323,7 @@ def api_search_recipes():
 
     # list of dictionaries with recipe data to send as JSON to frontend
     recipes_data_for_frontend = []
-    # protein_per_serving = {}
+    
     for recipe_object in filtered_recipes_from_db:
         recipes_data_for_frontend.append({
             "id": recipe_object.recipe_id,

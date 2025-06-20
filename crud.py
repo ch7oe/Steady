@@ -324,7 +324,7 @@ def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
     # initial query --> where search term is included in a recipe's title OR ingredients
     initial_query = db.session.query(Recipe).join(Recipe.ingredients).filter(
         ((Recipe.title.like(f"%{search_term}%")) | (Ingredient.name.like(f"%{search_term}%")))
-    ).distinct()
+    )
 
     current_filtered_recipes = initial_query
 
@@ -433,9 +433,18 @@ def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
                 "Paleo" in Recipe.diets
             )
 
-    current_filtered_recipes = current_filtered_recipes.order_by(Recipe.title)
+    current_filtered_recipes = current_filtered_recipes.order_by(Recipe.title).limit(limit).all()
 
-    return current_filtered_recipes.limit(limit).all()
+    # make sure recipes unique, not returning repeats
+    unique_recipes = []
+    seen_ids = set()
+
+    for recipe in current_filtered_recipes:
+        if recipe.recipe_id not in seen_ids:
+            seen_ids.add(recipe.recipe_id)
+            unique_recipes.append(recipe)
+
+    return unique_recipes
 
 
 # ------- Ingredient CRUD functions -------

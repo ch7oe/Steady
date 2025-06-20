@@ -59,7 +59,6 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                 diets=recipe.get('diets', 'N/A'),
                 texture=None
             )
-
             db.session.add(new_recipe)
             db.session.commit()
             cached_recipes_from_database.append(new_recipe) # append to list of recipes cached during this fetch
