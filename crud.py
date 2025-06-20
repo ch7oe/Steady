@@ -402,35 +402,35 @@ def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
     for restriction in user_diet_restrictions:
         if restriction == "gluten-free":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Gluten Free" in Recipe.diets
+                Recipe.diets.contains(["Gluten Free"])
             )
         elif restriction == "ketogenic":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Ketogenic" in Recipe.diets
+                Recipe.diets.contains(["Ketogenic"])
             )
         elif restriction == "lacto-vegetarian":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Lacto-Vegetarian" in Recipe.diets
+                Recipe.diets.contains(["Lacto-Vegetarian"])
             )
         elif restriction == "ovo-vegetarian":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Ovo-Vegetarian" in Recipe.diets
+                Recipe.diets.contains(["Ovo-Vegetarian"])
             )
         elif restriction == "vegetarian":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Vegetarian" in Recipe.diets
+                Recipe.diets.contains(["Vegetarian"])
             )
         elif restriction == "vegan":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Vegan" in Recipe.diets
+                Recipe.diets.contains(["Vegan"])
             )
         elif restriction == "pescetarian":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Pescetarian" in Recipe.diets
+                Recipe.diets.contains(["Pescetarian"])
             )
         elif restriction == "paleo":
             current_filtered_recipes = current_filtered_recipes.filter(
-                "Paleo" in Recipe.diets
+                Recipe.diets.contains(["Paleo"])
             )
 
     current_filtered_recipes = current_filtered_recipes.order_by(Recipe.title).limit(limit).all()
