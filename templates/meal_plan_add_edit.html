@@ -93,20 +93,37 @@
                 return;
             };
 
+            // show a loading message to user
+            recipeSearchResultDiv.innerHTML = "<p>Searching...</p>";
+
             // check if "likes" filter is active
             const likesFilter = filterLikesCheckbox.checked;
-
-            // show a loading message to user
-            recipeSearchResultDiv.textContent = "Searching..."
 
             const params = new URLSearchParams({
                 query: queryRecipeSearch,
                 likes: likesFilter
-            });
+            }).toString();
 
-            fetch(`//api/recipes/search?${params.toString()}`);
+            fetch(`/api/recipes/search?${params}`)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                    recipeSearchResultDiv.innerHTML = "";
 
-            
+                    if (responseJson.length === 0) {
+                        recipeSearchResultDiv.innerHTML = "<p>No recipes found matching criteria.</p>";
+                    } else {
+                        for (recipe of responseJson) {
+                            const recipeCard = document.createElement("div");
+                            recipeCard.innerHTML = `
+                            <h4>${recipe.title}</h4>
+                            <p>${recipe.servings}</p>
+                            <p>${recipe.source}</p>
+                            <a href="${recipe.url}">View Recipe</a>
+                            `;
+                            recipeSearchResultDiv.appendChild(recipeCard)
+                        };
+                    };
+                });
         });
 
         

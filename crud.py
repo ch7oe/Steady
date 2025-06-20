@@ -482,6 +482,8 @@ def get_or_create_nutrient(name, unit):
 
     if not nutrient:
         nutrient = create_nutrient(name, unit)
+        db.session.add(nutrient)
+        db.session.commit()
     
     return nutrient
 

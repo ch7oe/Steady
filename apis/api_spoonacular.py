@@ -61,17 +61,20 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
             )
 
             db.session.add(new_recipe)
+            db.session.commit()
             cached_recipes_from_database.append(new_recipe) # append to list of recipes cached during this fetch
 
             # cache ingredients
             if 'extendedIngredients' in recipe:
                 for ingredient in recipe['extendedIngredients']:
-                    create_ingredient(
+                    new_ingredient = create_ingredient(
                         recipe_id=new_recipe.recipe_id,
                         name=ingredient.get('name', 'N/A'),
                         quantity=ingredient.get('amount', 0.0),
                         unit=ingredient.get('unit', 'unit')
                     )
+                    db.session.add(new_ingredient)
+                    db.session.commit()
             
             # cache nutrients
             # from setting 'addRecipeNutrition' param to True
@@ -80,12 +83,13 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
 
                     nutrient_in_recipe = get_or_create_nutrient(nutrient['name'], nutrient['unit'])
 
-                    if nutrient_in_recipe: # check if nutrient exists before linking to recipe
-                        create_recipe_nutrient(
-                            recipe_id=new_recipe.recipe_id,
-                            nutrient_id=nutrient_in_recipe.nutrient_id,
-                            quantity=nutrient['amount'] # total amount per recipe, not per serving
-                        )
+                    new_recipe_nutrient = create_recipe_nutrient(
+                        recipe_id=new_recipe.recipe_id,
+                        nutrient_id=nutrient_in_recipe.nutrient_id,
+                        quantity=nutrient['amount'] # total amount per recipe, not per serving
+                    )
+                    db.session.add(new_recipe_nutrient)
+                    db.session.commit()
 
         else:
             # if recipe is already cached, add to list of recipes to return 

@@ -5,7 +5,7 @@ from model import connect_to_db, db, MealPlanRecipe
 from datetime import date, timedelta, datetime
 import crud
 from nutritional_analysis import calculate_daily_nutrient_intake
-from api import get_and_cache_spoonacular_recipes
+from apis.api_spoonacular import get_and_cache_spoonacular_recipes
 
 from jinja2 import StrictUndefined
 
@@ -288,13 +288,11 @@ def api_search_recipes():
     user = crud.get_user_by_id(user_id)
 
     # get search term and remove leading/trailing whitespace 
-    search_term = request.args.get("query").strip()
+    search_term = request.args.get("query", "").strip()
 
     # get filter parameters ("true" or "false") 
     likes_filter = request.args.get("likes")
-    low_protein_filter = request.args.get("low_protein")
-    high_protein_filter = request.args.get("high_protein")
-    high_fiber_filter = request.args.get("high_fiber")
+    
 
     if not search_term:
         return jsonify([]) # return empty list if no search term 
@@ -306,29 +304,28 @@ def api_search_recipes():
         likes=likes_filter
     )
 
+    user_diet_restrictions = [dr.restriction for dr in user.diet_restrictions]
+    user_allergens = [a.allergen for a in user.allergies]
 
-    if len(filtered_recipes_from_db) < 30: # if less than 30 results from database
-        user_diet_restrictions = [dr.restriction for dr in user.diet_restrictions]
-        user_allergens = [a.allergen for a in user.allergies]
+    #call spoonacular api to fetch and cache new recipes 
+    cached_recipes_spoonacular = get_and_cache_spoonacular_recipes(
+        recipe_query=search_term,
+        limit=20,
+        user_diet_restrictions=user_diet_restrictions,
+        user_allergens=user_allergens
+    ) 
+    db.session.add_all(cached_recipes_spoonacular)
+    db.sesison.commit()
 
-        #call spoonacular api to fetch and cache new recipes 
-        cached_recipes_spoonacular = get_and_cache_spoonacular_recipes(
-            recipe_query=search_term,
-            limit=20,
-            user_diet_restrictions=user_diet_restrictions,
-            user_allergens=user_allergens
-        ) 
-        db.session.add_all(cached_recipes_spoonacular)
-        db.sesison.commit()
-
-        filtered_recipes_from_db = crud.get_recipes_by_search(
-            user_id=user_id,
-            search_term=search_term,
-            likes=likes_filter
-        )
+    filtered_recipes_from_db = crud.get_recipes_by_search(
+        user_id=user_id,
+        search_term=search_term,
+        likes=likes_filter
+    )
 
     # list of dictionaries with recipe data to send as JSON to frontend
     recipes_data_for_frontend = []
+    # protein_per_serving = {}
     for recipe_object in filtered_recipes_from_db:
         recipes_data_for_frontend.append({
             "id": recipe_object.recipe_id,
@@ -339,6 +336,7 @@ def api_search_recipes():
             "servings": recipe_object.servings,
             "instructions": recipe_object.instructions
         })
+
     
     # return JSON response
     return jsonify(recipes_data_for_frontend)
