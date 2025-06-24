@@ -7,6 +7,7 @@ import crud
 from nutritional_analysis import calculate_daily_nutrient_intake
 from apis.api_spoonacular import get_and_cache_spoonacular_recipes
 
+
 from jinja2 import StrictUndefined
 
 app = Flask(__name__)
@@ -32,6 +33,7 @@ def register():
         raw_password = request.form.get("password")
         # swallow_difficulty = request.form.get("swallow-diff")
         weight = request.form.get("weight")
+
 
         existing_user = crud.get_user_by_email(email)
         
@@ -79,7 +81,7 @@ def login_user():
         
         if verify_password: # if correct password
             session["user_id"] = user.user_id # login user
-            flash(f"Hello, {user.fname}! 🌻")
+            flash(f"You're logged in! 🌻")
             return redirect("/dashboard")
     
     return render_template("login.html")
@@ -211,53 +213,6 @@ def meal_plan_add_edit(date_string):
         current_planned_meals_for_day=current_planned_meals_for_day    
     )
 
-# api for adding recipe to meal plan (AJAX POST) #
-@app.route("/api/meal-plan/add", methods=["POST"])
-def add_recipe_to_meal_plan():
-    """Add recipe to meal plan."""
-
-    user_id = session.get("user_id")
-    if not user_id:
-        flash("Login to view and edit meal plan.")
-        return redirect("/login")
-    
-    meal_plan_date_string = request.json.get("meal_plan_date") # string YYYY-MM-DD
-    recipe_id = request.json.get("recipe_id")
-    meal_type = request.json.get("meal_type")
-    serving_size = request.json.get("serving_size")
-
-    meal_plan_date = datetime.strptime(meal_plan_date_string, "%Y-%m-%d").date()
-
-    meal_plan_object = crud.get_meal_plan_by_user_id_and_date(user_id, meal_plan_date)
-
-    if not meal_plan_object:
-        meal_plan_object = crud.create_meal_plan(user_id, meal_plan_date)
-    
-    if not meal_plan_date_string and recipe_id and meal_type and serving_size:
-        return jsonify({"message": "Missing required data"})
-    
-    # check if recipe for meal type already exists in the plan
-    existing_recipe = db.session.query(MealPlanRecipe).filter(
-        MealPlanRecipe.meal_plan_id == meal_plan_object.meal_plan_id,
-        MealPlanRecipe.meal_type == meal_type,
-        MealPlanRecipe.recipe_id == recipe_id 
-    )
-
-    if existing_recipe:
-        return jsonify({"message": "Recipe already exist for this meal type on this day"})
-    else:
-        # if recipe doesnt alrady exist for meal type on this day
-        new_recipe_entry = crud.add_recipe_to_meal_plan(
-            meal_plan_object.meal_plan_id,
-            recipe_id,
-            meal_type,
-            serving_size
-        )
-        db.session.add(new_recipe_entry)
-        db.session.commit()
-
-        return jsonify({"message": f"Recipe added to {meal_type} plan!"})
-
     
 @app.route("/recipes/search")
 def get_recipe_search_page():
@@ -287,44 +242,38 @@ def api_search_recipes():
     
     user = crud.get_user_by_id(user_id)
 
-    # get search term and remove leading/trailing whitespace 
-    search_term = request.args.get("query", "").strip()
-
-    # get filter parameters ("true" or "false") 
-    likes_filter = request.args.get("likes")
-
+    # get search term and filters
+    search_term = request.args.get("query", "").strip()  
+    likes_filter = request.args.get("likes") # true or false
+    
 
     if not search_term:
         return jsonify([]) # return empty list if no search term 
-
-    # first search database
-    filtered_recipes_from_db = crud.get_recipes_by_search(
-        user_id=user_id,
-        search_term=search_term,
-        likes=likes_filter
-    )
-
-    user_diet_restrictions = [dr.restriction for dr in user.diet_restrictions]
+    
     user_allergens = [a.allergen for a in user.allergies]
+    user_diet_restrictions = [dr.restriction for dr in user.diet_restrictions]
+    user_dislikes = [dislike.name.lower() for dislike in user.likes_dislikes]
 
-    #call spoonacular api to fetch and cache new recipes 
-    cached_recipes_spoonacular = get_and_cache_spoonacular_recipes(
+    cached_recipes_from_api = get_and_cache_spoonacular_recipes(
         recipe_query=search_term,
-        limit=20,
+        user_allergens=user_allergens,
         user_diet_restrictions=user_diet_restrictions,
-        user_allergens=user_allergens
-    ) 
-
-    filtered_recipes_from_db = crud.get_recipes_by_search(
-        user_id=user_id,
-        search_term=search_term,
-        likes=likes_filter
+        user_dislikes=user_dislikes,
     )
+
+    # filtered_recipes_from_db = crud.get_recipes_by_search(
+    #     user_id=user_id,
+    #     search_term=search_term,
+    #     likes=likes_filter
+    # )
+
+    if not cached_recipes_from_api:
+        return jsonify({"message": "No recipes found matching criteria."})
 
     # list of dictionaries with recipe data to send as JSON to frontend
     recipes_data_for_frontend = []
     
-    for recipe_object in filtered_recipes_from_db:
+    for recipe_object in cached_recipes_from_api:
         recipes_data_for_frontend.append({
             "id": recipe_object.recipe_id,
             "spoonacular_id": recipe_object.spoonacular_id,
@@ -338,6 +287,99 @@ def api_search_recipes():
     
     # return JSON response
     return jsonify(recipes_data_for_frontend)
+
+
+# api for adding recipe to meal plan (AJAX POST) #
+@app.route("/api/meal-plan/add", methods=["POST"])
+def add_recipe_to_meal_plan():
+    """Add recipe to meal plan."""
+
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Login to view and edit meal plan.")
+        return redirect("/login")
+    
+    meal_plan_date_str = request.json.get("meal_plan_date") # string YYYY-MM-DD
+    recipe_id = request.json.get("recipe_id")
+    meal_type = request.json.get("meal_type")
+    serving_size = request.json.get("serving_size")
+
+    meal_plan_date = datetime.strptime(meal_plan_date_str, "%Y-%m-%d").date()
+
+    meal_plan_object = crud.get_meal_plan_by_user_id_and_date(user_id, meal_plan_date)
+
+    if not meal_plan_object:
+        meal_plan_object = crud.create_meal_plan(user_id, meal_plan_date)
+    
+    if not all([meal_plan_date_str, recipe_id, meal_type, serving_size]):
+        return jsonify({"message": "Missing required data"})
+    
+    # check if recipe for meal type already exists in the plan
+    existing_recipe = db.session.query(MealPlanRecipe).filter(
+        MealPlanRecipe.meal_plan_id == meal_plan_object.meal_plan_id,
+        MealPlanRecipe.meal_type == meal_type,
+        MealPlanRecipe.recipe_id == recipe_id 
+    ).first()
+
+    if existing_recipe:
+        return jsonify({"message": "Recipe already exist for this meal type on this day"})
+    else:
+        # if recipe doesnt alrady exist for meal type on this day
+        new_recipe_entry = crud.add_recipe_to_meal_plan(
+            meal_plan_object.meal_plan_id,
+            recipe_id,
+            meal_type,
+            serving_size
+        )
+        db.session.add(new_recipe_entry)
+        db.session.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": f"Recipe added to {meal_type} plan!"})
+
+
+# api for removing recipe from meal plan (AJAX POST)
+@app.route("/api/meal-plan/remove", methods=["POST"])
+def remove_recipe_from_meal_plan():
+    """remove recipe from meal plan."""
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({
+            "message": "Login to edit your meal plan."
+        })
+
+    meal_plan_data_str = request.json.get("meal_plan_date")
+    recipe_id = request.json.get("recipe_id")
+    meal_type = request.json.get("meal_type")
+
+    if not all([meal_plan_data_str, recipe_id, meal_type]):
+        return jsonify({"message": "Missing required data"})
+    
+    meal_plan_date = datetime.strptime(meal_plan_data_str, "%Y-%m-%d").date()
+
+    meal_plan_obj = crud.get_meal_plan_by_user_id_and_date(user_id, meal_plan_date)
+
+    entry_to_delete = db.session.query(MealPlanRecipe).filter(
+        MealPlanRecipe.meal_plan_id==meal_plan_obj.meal_plan_id,
+        MealPlanRecipe.recipe_id==recipe_id,
+        MealPlanRecipe.meal_type==meal_type
+    ).first()
+
+    if entry_to_delete:
+        db.session.delete(entry_to_delete)
+        db.session.commit()
+
+        return jsonify({"message": "Recipe removed from plan."})
+    else:
+        return jsonify({"message": "Failed to remove recipe from plan"})
+
+
+
+
+
 
 
 

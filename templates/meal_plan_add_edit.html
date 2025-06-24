@@ -10,6 +10,8 @@
             Plan Meals for {{ target_date.strftime("%A, %B, %d, %Y") }}
         </h1>
         <p>Add or remove recipes for your meal plan.</p>
+        <label for="date-string">Choose another day:</label>
+        <input type="date" name="date-string" id="date-string">
     </div>
     
     <!-- current planned meals for this day -->
@@ -28,7 +30,7 @@
                         <li>
                             {{ meal_plan_recipe.recipe.title }}
                             
-                            <button id="remove-recipe">
+                            <button class="remove-from-plan-buttn" id="remove-recipe" data-recipe-id="{{ meal_plan_recipe.recipe_id }}" data-meal-type="{{ meal_plan_recipe.meal_type }}">
                                 Remove recipe
                             </button>
                         </li>
@@ -83,7 +85,7 @@
         const recipeSearchInput = document.querySelector("#recipe-search-input");
         const recipeSearchBttn = document.querySelector("#recipe-search-button");
         const recipeSearchResultDiv = document.querySelector("#search-results");
-        const filterLikesCheckbox = document.querySelector("#filter-likes")
+        const filterLikesCheckbox = document.querySelector("#filter-likes");
 
 
         recipeSearchBttn.addEventListener("click", (evt) => {
@@ -93,11 +95,11 @@
                 return;
             };
 
-            // show a loading message to user
-            recipeSearchResultDiv.innerHTML = "<p>Searching...</p>";
-
             // check if "likes" filter is active
             const likesFilter = filterLikesCheckbox.checked;
+
+            // show a loading message to user
+            recipeSearchResultDiv.innerHTML = "<p>Searching...</p>";
 
             const params = new URLSearchParams({
                 query: queryRecipeSearch,
@@ -107,6 +109,9 @@
             fetch(`/api/recipes/search?${params}`)
                 .then((response) => response.json())
                 .then((responseJson) => {
+
+                    // console.log(responseJson)
+
                     recipeSearchResultDiv.innerHTML = "";
 
                     if (responseJson.message) {
@@ -117,20 +122,96 @@
                     if (responseJson.length === 0) {
                         recipeSearchResultDiv.innerHTML = "<p>No recipes found matching criteria.</p>";
                     } else {
-                        for (recipe of responseJson) {
+                        for (const recipe of responseJson) {
                             const recipeCard = document.createElement("div");
                             recipeCard.innerHTML = `
                             <h4>${recipe.title}</h4>
-                            <p>${recipe.servings}</p>
-                            <p>${recipe.source}</p>
+                            <p>Servings: ${recipe.servings}</p>
                             <a href="${recipe.url}">View Recipe</a>
+                            <button class="add-to-plan-buttn" data-recipe-id="${recipe.id}" data-recipe-title="${recipe.title}" data-recipe-servings="${recipe.servings}">
+                                Add to Plan
+                            </button>
                             `;
                             recipeSearchResultDiv.appendChild(recipeCard)
+
+                        };
+
+                        // event listeners for "Add to Plan" buttons on recipes
+                        const addToMealPlanButtons = document.querySelectorAll(".add-to-plan-buttn")
+
+                        for (const button of addToMealPlanButtons) {
+                            button.addEventListener("click", (evt) => {
+                                const recipeId = button.dataset.recipeId;
+                                const recipeTitle = button.dataset.recipeTitle;
+                                const recipeServings = parseFloat(button.dataset.recipeServings);
+
+                                const mealType = prompt(`Add "${recipeTitle}" to which meal type (breakfast, lunch, dinner, snack)?`).toLowerCase();
+
+                                if (!mealType) {
+                                    return;
+                                }
+
+                                const servingsMealPlanRecipe = parseFloat(prompt(`How many servings of "${recipeTitle}"? (Original: ${recipeServings})`));
+
+                                
+                                // send AJAX POST request to add recipe to meal plan
+                                fetch("/api/meal-plan/add", {
+                                    method: "POST",
+                                    headers: {
+                                        "content-type": "application/json", // tell flask sending json 
+                                    },
+                                    body: JSON.stringify({
+                                        meal_plan_date: targetDate,
+                                        recipe_id: recipeId,
+                                        meal_type: mealType,
+                                        serving_size: servingsMealPlanRecipe,
+                                    }),
+                                })
+                                .then((response) => response.json())
+                                .then((responseJson) => {
+                                    if (responseJson.status === "success") {
+                                        alert(responseJson.message);
+                                        window.location.reload(); // simple reload to update currently planned section
+                                    } else {
+                                        alert(`Error: ${responseJson.message}`);
+                                    }
+                                });
+                                
+
+                            });
                         };
                     };
                 });
         });
-
         
+        // event listeners for "Remove recipe" buttons on recipes
+        RemoveRecipeButtons = document.querySelectorAll(".remove-from-plan-buttn");
+
+        for (const button of RemoveRecipeButtons) {
+            button.addEventListener("click", (evt) => {
+                const recipeId = button.dataset.recipeId;
+                const mealType = button.dataset.mealType;
+
+                fetch("/api/meal-plan/remove", {
+                    method:"POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        meal_plan_date: targetDate, // the date for this page
+                        recipe_id: recipeId,
+                        meal_type: mealType
+                    }),
+
+                })
+                .then((response) => response.json())
+                .then((responseJson) => {
+                    alert(responseJson.message);
+                    window.location.reload();
+                });
+
+            });
+        }
+
     </script>
 {% endblock %}

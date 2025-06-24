@@ -1,6 +1,7 @@
 """Models for Parkinson's App."""
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -143,7 +144,7 @@ class Recipe(db.Model):
     servings = db.Column(db.Float, nullable=False)
     instructions = db.Column(db.Text, nullable=False)
     texture = db.Column(db.String)
-    diets = db.Column(db.JSON) 
+    diets = db.Column(JSONB) 
     date_added = db.Column(db.DateTime, nullable=False)
 
     meal_plan_recipes = db.relationship("MealPlanRecipe", back_populates="recipe")

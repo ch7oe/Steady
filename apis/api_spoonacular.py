@@ -9,7 +9,7 @@ import os
 API_KEY = os.environ['SPOONACULAR_KEY']
 SPOONACULAR_BASE_URL = "https://api.spoonacular.com/recipes"
 
-def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_diet_restrictions=None, user_likes=None, user_dislikes=None, limit=10):
+def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_diet_restrictions=None, user_likes=None, user_dislikes=None, limit=50):
     """Send search recipes request to Spoonacular API. Cache and return fetched recipes."""
 
     headers = {'x-api-key': API_KEY} # can put api key for spoonacular in header or query string 
@@ -20,6 +20,7 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
         'instructionsRequired': True,
         'addRecipeInformation': True, 
         'addRecipeNutrition': True,
+        'fillIngredients': True
     }
 
     # user specific filters 
@@ -42,6 +43,10 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
     spoonacular_recipes = response.get('results', [])
     cached_recipes_from_database = []
 
+    # new_recipes_to_add = []
+    new_ingredients_to_add = []
+    new_recipe_nutrients_to_add = []
+
     for recipe in spoonacular_recipes:
         
         # check if a recipe is already in database
@@ -56,12 +61,12 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                 url=recipe.get('sourceUrl', 'N/A'),
                 servings=recipe.get('servings', 1),
                 instructions=recipe.get('instructions', 'No instructions provided'),
-                diets=recipe.get('diets', 'N/A'),
+                diets=recipe.get('diets', []),
                 texture=None
             )
             db.session.add(new_recipe)
             db.session.commit()
-            cached_recipes_from_database.append(new_recipe) # append to list of recipes cached during this fetch
+            # new_recipes_to_add.append(new_recipe) # add to list of recipes to add/commit
 
             # cache ingredients
             if 'extendedIngredients' in recipe:
@@ -72,8 +77,7 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                         quantity=ingredient.get('amount', 0.0),
                         unit=ingredient.get('unit', 'unit')
                     )
-                    db.session.add(new_ingredient)
-                    db.session.commit()
+                    new_ingredients_to_add.append(new_ingredient) # add to list of ingredients to add/commit
             
             # cache nutrients
             # from setting 'addRecipeNutrition' param to True
@@ -87,12 +91,17 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                         nutrient_id=nutrient_in_recipe.nutrient_id,
                         quantity=nutrient['amount'] # total amount per recipe, not per serving
                     )
-                    db.session.add(new_recipe_nutrient)
-                    db.session.commit()
+                    new_recipe_nutrients_to_add.append(new_recipe_nutrient)
+
+            cached_recipes_from_database.append(new_recipe) # append to list of recipes cached during this fetch
 
         else:
-            # if recipe is already cached, add to list of recipes to return 
             cached_recipes_from_database.append(existing_recipe)
+        
+        # db.session.add_all(new_recipes_to_add)
+        db.session.add_all(new_ingredients_to_add)
+        db.session.add_all(new_recipe_nutrients_to_add)
+        db.session.commit()
     
     return cached_recipes_from_database
         
