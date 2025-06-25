@@ -170,11 +170,22 @@ def view_meal_plan():
     )
 
 
-@app.route("/meal-plan/edit/<date_string>")
+@app.route("/meal-plan/edit/<date_string>", methods=["GET", "POST"])
 def meal_plan_add_edit(date_string):
     """Display page to add/edit meals for a specific date.
     <date_string> in YYYY-MM-DD format.
     """
+
+    if request.method == "POST":
+        chosen_date_str = request.form.get("date-string")
+
+        if chosen_date_str:
+            return redirect(f"/meal-plan/edit/{chosen_date_str}")
+        
+        else:
+            flash("No date was chosen. Select a date to change date.")
+            return redirect(f"/meal-plan/edit/{date_string}")
+        
 
     user_id = session.get("user_id") # verify user logged in 
     if not user_id:

@@ -10,8 +10,11 @@
             Plan Meals for {{ target_date.strftime("%A, %B, %d, %Y") }}
         </h1>
         <p>Add or remove recipes for your meal plan.</p>
-        <label for="date-string">Choose another day:</label>
-        <input type="date" name="date-string" id="date-string">
+        <form action="/meal-plan/edit/{{ target_date.strftime('%Y-%m-%d') }}" method="POST">
+            <label for="date-string">Choose another day:</label>
+            <input type="date" name="date-string" id="date-string">
+            <button type="submit">Change Date</button>
+        </form>
     </div>
     
     <!-- current planned meals for this day -->
