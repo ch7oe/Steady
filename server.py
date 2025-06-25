@@ -388,7 +388,7 @@ def remove_recipe_from_meal_plan():
         return jsonify({"message": "Failed to remove recipe from plan"})
     
 
-@app.route("log-meal")
+@app.route("/log-meal")
 def meal_log():
     """Display meal log page."""
 

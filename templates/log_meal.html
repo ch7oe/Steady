@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Log a Meal - Steady{% endblock %}
+
+{% block body %}
+    <div>
+        <div>
+            <h1>Log Your Meal</h1>
+            <p>Record what you've eaten to track your nutrition.</p>
+        </div>
+
+        <!-- select data and meal type -->
+        <div>
+            <h2>Meal Details</h2>
+
+            <!-- date -->
+            <div>
+                <label for="log-date">Date</label>
+                <input type="date" id="log-date" value="{{ today_str }}">
+            </div>
+
+            <!-- meal type -->
+            <div>
+                <label for="meal-type">Meal Type</label>
+                <select id="meal-type">
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                </select>
+            </div>
+            <button id="view-logged-meals-bttn">
+                View/Refresh Logged Meals for Selected Date
+            </button>
+        </div>
+
+        <!-- logged meals for selected date -->
+        <div id="logged-meals-display">
+            <h2>Meals Logged for <span id="current-logged-date">{{ today_str }}</span>:</h2>
+            <div>
+                <p>Select a date and click "View" to see logged meals.</p>
+                <!-- will be added using javascript  -->
+            </div>
+        </div>
+
+        <!-- recipe search section (for logging) -->
+        <div>
+            <h2>Search Recipes to Log:</h2>
+            <div>
+                <input type="text" id="recipe-search-input-log" placeholder="Search for recipes">
+            </div>
+            <button id="search-recipes-bttn-log">
+                Search
+            </button>
+
+            <div id="search-results-log">
+                <p>Start searching to find recipes to log.</p>
+                <!-- results added using javascript -->
+            </div>
+        </div> 
+    </div>
+{% endblock %}
+
+{% block after_body %}{% endblock %}
