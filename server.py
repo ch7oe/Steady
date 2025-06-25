@@ -386,6 +386,23 @@ def remove_recipe_from_meal_plan():
         return jsonify({"message": "Recipe removed from plan."})
     else:
         return jsonify({"message": "Failed to remove recipe from plan"})
+    
+
+@app.route("log-meal")
+def meal_log():
+    """Display meal log page."""
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        flash("Login to log your meals.")
+        return redirect("/login")
+    
+    today_str = date.today().strftime('%Y-%m-%d')
+
+    return render_template("log_meal.html", today_str=today_str)
+
+
 
 
 
