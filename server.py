@@ -300,7 +300,7 @@ def api_search_recipes():
     return jsonify(recipes_data_for_frontend)
 
 
-# api for adding recipe to meal plan (AJAX POST) #
+# api for adding recipe to meal plan (AJAX POST) 
 @app.route("/api/meal-plan/add", methods=["POST"])
 def add_recipe_to_meal_plan():
     """Add recipe to meal plan."""
@@ -401,6 +401,41 @@ def meal_log():
     today_str = date.today().strftime('%Y-%m-%d')
 
     return render_template("log_meal.html", today_str=today_str)
+
+
+# api for getting logged meals (AJAX POST)
+@app.route("/api/meal-log/get", methods=["POST"])
+def api_get_logged_meals():
+    """get logged meals for a specific user and date.
+    """
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"message": "Login to view logged meals"})
+    
+    # get date string from query params
+    date_str = request.args.get("date")
+    if not date_str:
+        return jsonify({"message": "date is required"})
+    
+    # convert to datetime object
+    log_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
+    # get meal logs for user on log date chosen - MealLog objects
+    meal_logs = crud.get_meal_log_by_user_id_and_date(user_id, log_date)
+
+    logged_meals_data = [] # store logged meals to send to frontend
+    for meal_log in meal_logs:
+        #loop through MealLogRecipe entries associated with this MealLog
+        for meal_recipe_entry in meal_log.meal_log_recipes:
+            logged_meals_data.append({
+                "meal_log_id": meal_log.meal_log_id,
+                "recipe_id": meal_recipe_entry.recipe_id,
+                "recipe_title": meal_recipe_entry.recipe.title,
+                "meal_type": meal_log.meal_type,
+                "serving_size": meal_recipe_entry.serving_size
+            })
+
 
 
 
