@@ -403,8 +403,8 @@ def meal_log():
     return render_template("log_meal.html", today_str=today_str)
 
 
-# api for getting logged meals (AJAX POST)
-@app.route("/api/meal-log/get", methods=["POST"])
+# api for getting logged meals (AJAX)
+@app.route("/api/meal-log/get", methods=["GET"])
 def api_get_logged_meals():
     """get logged meals for a specific user and date.
     """
@@ -435,6 +435,15 @@ def api_get_logged_meals():
                 "meal_type": meal_log.meal_type,
                 "serving_size": meal_recipe_entry.serving_size
             })
+
+    return jsonify(logged_meals_data)
+
+
+# api for adding a logged meal (AJAX POST)
+@app.route("/api/meal-log/add", methods=["POST"])
+def api_add_logged_meal():
+    """"""
+
 
 
 

@@ -37,7 +37,7 @@
         <!-- logged meals for selected date -->
         <div id="logged-meals-display">
             <h2>Meals Logged for <span id="current-logged-date">{{ today_str }}</span>:</h2>
-            <div>
+            <div id="logged-meals-list">
                 <p>Select a date and click "View" to see logged meals.</p>
                 <!-- will be added using javascript  -->
             </div>
@@ -61,4 +61,93 @@
     </div>
 {% endblock %}
 
-{% block after_body %}{% endblock %}
+{% block after_body %}
+<script>
+    // date and meal type input 
+    const logDateInput = document.querySelector("#log-date");
+    const mealTypeSelect = document.querySelector("#meal-type");
+
+    // button and div to view logged meals 
+    const viewLoggedMealsButtn = document.querySelector("#view-logged-meals-bttn");
+    const loggedMealsListDiv = document.querySelector("#logged-meals-list");
+    const currentLoggedDateSpan = document.querySelector("#current-logged-date");
+    
+    // button and div search for recipes to log
+    const searchInputLog = document.querySelector("#recipe-search-input-log");
+    const searchBttnLog = document.querySelector("#search-recipes-bttn-log");
+    const searchResultsLogDiv = document.querySelector("#search-results-log");
+    
+    // add event listener to view logged meals button 
+    viewLoggedMealsButtn.addEventListener("click", (evt) => {
+        const selectedDate = logDateInput.value;
+
+        currentLoggedDateSpan.textContent = new Date(selectedDate).toDateString();
+        loggedMealsListDiv.innerHTML = "<p>loading logged meals...</p>";
+
+        fetch(`/api/meal-log/get?date=${selectedDate}`)
+            .then((response) => response.json())
+            .then((responseJson) => {
+
+                loggedMealsListDiv.innerHTML = "";
+
+                if (responseJson.length === 0) {
+                    loggedMealsListDiv.innerHTML = "<p>No meals logged for this date.</p>";
+                } else {
+                    // group meals by meal type 
+                    const groupedMeals = {};
+
+                    for (const meal_log of responseJson) {
+                        const mealType = meal_log.meal_type;
+
+                        if (!groupedMeals[mealType]) {
+                            groupedMeals[mealType] = [];
+                        }
+                        // add current meal_log entry to array for its meal type
+                        groupedMeals[mealType].push(meal_log);
+                    }
+
+                    // display meals
+                    const mealTypesOrder = ["breakfast", "lunch", "dinner", "snack"];
+
+                    for (const type of mealTypesOrder) {
+                        let mealsOfType; 
+
+                        if (groupedMeals[type]) {
+                            // list of meals for this particular meal type
+                            mealsOfType = groupedMeals[type]
+                        } else {
+                            // no meals for this meal type 
+                            mealsOfType = [];
+                        }
+
+                        if (mealsOfType.length > 0) {
+
+                            const mealGroupDiv = document.createElement("div");
+
+                            let listOfMealLogsHtml = "";
+                            for (const loggedMeal of mealsOfType) { // loop through each meal log entry
+                                listOfMealLogsHtml += `
+                                    <li>
+                                        ${loggedMeal.recipe_title} (${loggedMeal.serving_size} serving(s))
+                                        <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}">
+                                            (Remove)
+                                        </button> 
+                                    </li>
+                                `;
+                            }
+
+                            mealGroupDiv.innerHTML = `
+                                <h4>${type}</h4>
+                                <ul>
+                                    ${listOfMealLogsHtml}
+                                </ul>
+                            `;
+
+                            loggedMealsListDiv.appendChild(mealGroupDiv);
+                        }
+                    }
+                }
+            });
+    })
+</script>
+{% endblock %}
