@@ -1,7 +1,7 @@
 """Server for Parkinson's app."""
 
 from flask import Flask, render_template, request, flash, session, redirect, jsonify 
-from model import connect_to_db, db, MealPlanRecipe
+from model import connect_to_db, db, MealPlanRecipe, MealLog, MealLogRecipe
 from datetime import date, timedelta, datetime
 import crud
 from nutritional_analysis import calculate_daily_nutrient_intake
@@ -442,7 +442,64 @@ def api_get_logged_meals():
 # api for adding a logged meal (AJAX POST)
 @app.route("/api/meal-log/add", methods=["POST"])
 def api_add_logged_meal():
-    """"""
+    """Log a new meal for a user.
+    creates meallog and meallog recipe entries.
+    """
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({"message": "Login to log a meal"})
+    
+    #  json from frontend 
+    log_date_str = request.json.get("log_date")
+    meal_type = request.json.get("meal_type")
+    recipe_id = request.json.get("recipe_id")
+    serving_size = request.json.get("serving_size")
+
+    if not all([log_date_str, meal_type, recipe_id, serving_size]):
+        return jsonify({"message": "missing required data."})    
+    
+    log_date = datetime.strptime(log_date_str, "%Y-%m-%d").date()
+
+    meal_log_obj = db.session.query(MealLog).filter(
+        MealLog.user_id == user_id,
+        MealLog.log_date == log_date,
+        MealLog.meal_type == meal_type
+    ).first()
+
+    if not meal_log_obj:
+        # create a meal log for a user
+        meal_log_obj = crud.create_meal_log(user_id, log_date, meal_type)
+        db.session.add(meal_log_obj)
+        db.session.commit()
+
+    existing_ml_recipe = db.session.query(MealLogRecipe).filter(
+        MealLogRecipe.meal_log_id == meal_log_obj.meal_log_id,
+        MealLogRecipe.recipe_id == recipe_id
+    ).first()
+
+    if existing_ml_recipe:
+        # if entry exists, update its serving size 
+        existing_ml_recipe.serving_size = serving_size
+        db.session.add(existing_ml_recipe)
+        db.session.commit()
+
+        return jsonify({"message": "logged meal serving size updated!"})
+    
+    else:
+        new_ml_recipe = crud.add_recipe_to_meal_log(
+            meal_log_obj.meal_log_id,
+            recipe_id,
+            serving_size
+        )
+        db.session.add(new_ml_recipe)
+        db.session.commit()
+
+        return jsonify({"message": "Meal logged successfully!"})
+
+    
+
 
 
 
