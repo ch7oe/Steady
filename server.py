@@ -497,6 +497,38 @@ def api_add_logged_meal():
         db.session.commit()
 
         return jsonify({"message": "Meal logged successfully!"})
+    
+
+# api for removing a logged meal (AJAX POST)
+@app.route("/api/meal-log-remove", methods=["POST"])
+def api_remove_logged_meal():
+    """remove a logged meal for a user."""
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"message": "Login to remove a logged meal."})
+    
+    meal_log_id = request.json.get("meal_log_id")
+    recipe_id = request.json.get("recipe_id")
+    meal_type = request.json.get("meal_type")
+
+    if not all([meal_log_id, recipe_id, meal_type]):
+        return jsonify({"message": "Missing required data."})
+    
+    ml_to_delete = db.session.query(MealLogRecipe).filter(
+        MealLogRecipe.meal_log_id == meal_log_id,
+        MealLogRecipe.recipe_id == recipe_id,
+        MealLogRecipe.meal_log.meal_type == meal_type
+    ).first()
+
+    if ml_to_delete:
+        db.session.delete(ml_to_delete)
+        db.session.commit()
+
+        return jsonify({"message": "Logged meal removed."})
+    
+    else:
+        return jsonify({"message": "Logged meal not found for this meal type."})
 
     
 
