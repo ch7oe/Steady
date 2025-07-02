@@ -81,8 +81,12 @@
     viewLoggedMealsButtn.addEventListener("click", (evt) => {
         const selectedDate = logDateInput.value;
 
-        currentLoggedDateSpan.textContent = new Date(selectedDate).toDateString();
+        currentLoggedDateSpan.textContent = new Date(selectedDate).toUTCString().slice(0,-13);
+
         loggedMealsListDiv.innerHTML = "<p>loading logged meals...</p>";
+
+        console.log(selectedDate);
+        console.log(currentLoggedDateSpan);
 
         fetch(`/api/meal-log/get?date=${selectedDate}`)
             .then((response) => response.json())
@@ -130,7 +134,7 @@
                                     <li>
                                         ${loggedMeal.recipe_title} (${loggedMeal.serving_size} serving(s))
                                         <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}">
-                                            (Remove)
+                                            Remove
                                         </button> 
                                     </li>
                                 `;
@@ -148,6 +152,86 @@
                     }
                 }
             });
-    })
+    });
+
+    // add event listener to recipe search button - AJAX display recipes a user can add to meal log
+    searchBttnLog.addEventListener("click", (evt) => {
+
+        const query = searchInputLog.value.trim();
+
+        if (!query) {
+            searchResultsLogDiv.innerHTML = "<p>Enter a search term to view recipes</p>";
+            
+            return;
+        }
+
+        searchResultsLogDiv.innerHTML = "<p>Searching...</p>";
+
+        fetch(`/api/recipes/search?query=${query}`)
+        .then((response) => response.json())
+        .then((responseJson) => {
+
+            searchResultsLogDiv.innerHTML = "";
+
+            if (responseJson.length === 0) {
+                searchResultsLogDiv.innerHTML = "<p>No recipes found matching your criteria.</p>";
+            } else {
+                for (const recipe of responseJson) {
+                    const recipeCard = document.createElement("div");
+
+                    recipeCard.innerHTML = `
+                    <h4 class="font-semibold text-gray-800 text-lg mb-2">${recipe.title}</h4>
+                    <p>Servings: ${recipe.servings}</p>
+                    <button data-recipe-id="${recipe.id}" data-recipe-title="${recipe.title}" data-recipe-servings="${recipe.servings}" class="log-recipe-bttn">
+                        Log This Recipe
+                    </button>
+                    `;
+                    searchResultsLogDiv.appendChild(recipeCard);
+                };
+
+                // event listeners for "Log this recipe" button 
+                const logRecipeButtns = document.querySelectorAll(".log-recipe-bttn")
+
+                for (const button of logRecipeButtns) {
+                    button.addEventListener("click", (evt) => {
+                        const recipeId = button.dataset.recipeId;
+                        const recipeTitle = button.dataset.recipeTitle;
+                        const recipeServings = parseFloat(button.dataset.recipeServings);
+
+                        // get date and meal type from user
+                        const logDate = logDateInput.value;
+                        const mealType = mealTypeSelect.value;
+
+                        let servingsToLog = parseFloat(prompt(`How many servings of "${recipeTitle}" did you eat? (original servings)`));
+                        if (isNaN(servingsToLog) || servingsToLog < 0) {
+                            alert("enter valid positive number.")
+                            return;
+                        }
+
+                        fetch("/api/meal-log/add", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                "log_date": logDate,
+                                "meal_type": mealType,
+                                "recipe_id": recipeId,
+                                "serving_size": servingsToLog
+                            }),
+                        })
+                        .then((response) => response.json())
+                        .then((responseJson) => {
+                            alert(`${responseJson.message}`);
+                        });
+
+                    });
+                };
+            }
+        });
+    });
+
+    // 
+
 </script>
 {% endblock %}
