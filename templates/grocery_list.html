@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Grocery List - Steady{% endblock %}
+
+{% block body %}
+    <div>
+        <div>
+            <h1>Your Grocery List</h1>
+            <p>
+                Food items needed for your meal plans from {{ week_start_date.strftime("%B %d") to {{ week_end_date.strftime("%B %d, %Y") }} }}.
+            </p>
+        </div>
+
+        {% if grocery_list %}
+        <div>
+            <h2>
+                All Items 
+            </h2>
+            <ul>
+                {% for item in grocery_list %}
+                    <li>
+                        <span>{{ item.name }}:</span>
+                        <span>{{ item.quantity | round(2) }}</span>
+                        <span>{{ item.unit}}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {% else %}
+        <div>
+            <!-- message if no grocery list could be generated -->
+            <p>
+                No grocery list generated. Create a meal plan for this week first!
+            </p>
+            <a href="/meal-plan">
+                Go to meal plan
+            </a>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
