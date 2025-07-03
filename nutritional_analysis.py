@@ -114,17 +114,17 @@ def generate_simple_grocery_list_for_week(user_id, week_start_date, week_end_dat
                     continue
 
                 # get all ingredients for this recipe 
-                ingredients_for_recipe = crud.get_ingredients_by_recipe_id
+                ingredients_for_recipe = crud.get_ingredients_by_recipe_id(recipe.recipe_id)
 
                 for ingredient in ingredients_for_recipe: # ingredient is an Ingredient object
                     ingredient_name = ingredient.name
                     ingredient_unit = ingredient.unit
-                    quanity_per_recipe_original = ingredient.quantity # total for recipe's servings 
+                    quantity_per_recipe_original = ingredient.quantity # total for recipe's servings 
 
                     # calculate the quantity needed for the planned serving size 
                     if recipe.servings > 0: # avoid diving by zero
 
-                        quantity_per_original_serving = quanity_per_recipe_original / recipe.servings
+                        quantity_per_original_serving = quantity_per_recipe_original / recipe.servings
                         quantity_needed = quantity_per_original_serving * serving_size_planned
                     
                     else:
@@ -140,12 +140,12 @@ def generate_simple_grocery_list_for_week(user_id, week_start_date, week_end_dat
                             "unit": ingredient_unit
                         }
                     
-                    ingredient_dicts[ingredient_dicts]["quantity"] += quantity_needed
+                    ingredient_dicts[ingredient_key]["quantity"] += quantity_needed
 
         current_date += timedelta(days=1)
     
     # convert ingredients dict to a list of its values 
-    final_grocery_list = list(ingredient_dicts.value())
+    final_grocery_list = list(ingredient_dicts.values())
 
     return final_grocery_list
 

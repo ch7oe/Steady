@@ -532,7 +532,7 @@ def api_remove_logged_meal():
     
 
 @app.route("/grocery-list")
-def grocery_list():
+def view_grocery_list():
     """Display the user's grocery list for the current week."""
 
     user_id = session.get("user_id")
