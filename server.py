@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, session, redirect, jso
 from model import connect_to_db, db, MealPlanRecipe, MealLog, MealLogRecipe
 from datetime import date, timedelta, datetime
 import crud
-from nutritional_analysis import calculate_daily_nutrient_intake
+from nutritional_analysis import calculate_daily_nutrient_intake, generate_simple_grocery_list_for_week
 from apis.api_spoonacular import get_and_cache_spoonacular_recipes
 
 
@@ -548,7 +548,18 @@ def grocery_list():
     week_end_date = week_start_date + timedelta(days=6)
 
     # generate grocery list using helper function from nutritional_analysis.py
-    grocery_list_data = 
+    grocery_list_data = generate_simple_grocery_list_for_week(
+        user_id,
+        week_start_date,
+        week_end_date
+    )
+
+    return render_template(
+        "grocery_list.html",
+        grocery_list=grocery_list_data,
+        week_start_date=week_start_date,
+        week_end_date=week_end_date
+    )
 
     
 
