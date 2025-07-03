@@ -79,8 +79,78 @@ def calculate_daily_nutrient_intake(user_id, intake_date):
 #             for nutrient_name, 
             
 
-
+def generate_simple_grocery_list_for_week(user_id, week_start_date, week_end_date):
+    """generates a gorcery list for a user's meal plan within a given week
     
+    returns list of ingredient dictionaries:
+
+    Example: [
+        {'name': 'Chicken', 'quantity': 500.0, 'unit': 'g'}, 
+        {'name': 'Milk', 'quantity': 2.0, 'unit': 'cups'}
+        ]
+    """
+
+    ingredient_dicts = {}
+    
+    current_date = week_start_date
+
+    while current_date <= week_end_date:
+
+        # get the meal plan for this specific day 
+        meal_plan_for_day = crud.get_meal_plan_by_user_id_and_date(user_id, current_date)
+
+        if meal_plan_for_day:
+
+            # get MealPlanRecipe entries for this day 
+            meal_plan_recipes = crud.get_recipes_in_meal_plan(meal_plan_for_day.meal_plan_id)
+
+            for mp_recipe in meal_plan_recipes: # MealPlanRecipe Objects
+
+                recipe = mp_recipe.recipe
+                serving_size_planned = mp_recipe.serving_size
+
+                if not recipe or not recipe.servings:
+                    print("recipe not found of has not serving info. skipping ingredients.")
+                    continue
+
+                # get all ingredients for this recipe 
+                ingredients_for_recipe = crud.get_ingredients_by_recipe_id
+
+                for ingredient in ingredients_for_recipe: # ingredient is an Ingredient object
+                    ingredient_name = ingredient.name
+                    ingredient_unit = ingredient.unit
+                    quanity_per_recipe_original = ingredient.quantity # total for recipe's servings 
+
+                    # calculate the quantity needed for the planned serving size 
+                    if recipe.servings > 0: # avoid diving by zero
+
+                        quantity_per_original_serving = quanity_per_recipe_original / recipe.servings
+                        quantity_needed = quantity_per_original_serving * serving_size_planned
+                    
+                    else:
+                        quantity_needed = 0.0
+
+                    # using (name, unit) as key to correctly group unique items 
+                    ingredient_key = (ingredient_name.lower(), ingredient_unit.lower())
+
+                    if ingredient_key not in ingredient_dicts:
+                        ingredient_dicts[ingredient_key] = {
+                            "name": ingredient_name,
+                            "quantity": 0.0,
+                            "unit": ingredient_unit
+                        }
+                    
+                    ingredient_dicts[ingredient_dicts]["quantity"] += quantity_needed
+
+        current_date += timedelta(days=1)
+    
+    # convert ingredients dict to a list of its values 
+    final_grocery_list = list(ingredient_dicts.value())
+
+    return final_grocery_list
+
+
+
 
 
 

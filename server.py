@@ -529,6 +529,26 @@ def api_remove_logged_meal():
     
     else:
         return jsonify({"message": "Logged meal not found for this meal type."})
+    
+
+@app.route("/grocery-list")
+def grocery_list():
+    """Display the user's grocery list for the current week."""
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+
+        flash("Login to view your grocery list")
+        return redirect("/login")
+    
+    # calculate for the current week (Monday to Sunday)
+    today = date.today()
+    week_start_date = today - timedelta(days=today.weekday())
+    week_end_date = week_start_date + timedelta(days=6)
+
+    # generate grocery list using helper function from nutritional_analysis.py
+    grocery_list_data = 
 
     
 
