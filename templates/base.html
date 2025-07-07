@@ -21,74 +21,75 @@
 <body>
     <div class="container">
         <div style="background-color: rgba(71, 68, 68, 0.5)!important;">
-        {% for msg in get_flashed_messages() %}
-            <p class="flash-msg">
-                {{ msg }}
-            </p>
-        {% endfor %}
 
-        <nav class="navbar navbar-expand-sm navbar-light bg-light">
-            <a class="navbar-brand mb-2 ms-2" href="/" style="margin: 0px 16px 8px 16px!important;">Steady</a>
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-            >
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <nav class="navbar navbar-expand-sm navbar-light bg-light">
+                <a class="navbar-brand mb-2 ms-2" href="/" style="margin: 0px 16px 8px 16px!important;">Steady</a>
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent" style="margin-right: 8px;">
-                <ul class="navbar-nav ms-auto mb-2 mb-sm-2">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="/dashboard">Home <span class="sr-only">(current)</span></a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a
-                        class="nav-link dropdown-toggle"
-                        href="#"
-                        id="navbarDropdown"
-                        role="button"
-                        data-bs-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        >
-                        Meal Plan
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/meal-plan">Weekly Meal Plan</a></li>
-                            <li><a class="dropdown-item" href="#">Edit Meal Plan</a></li>
-                            <li>
-                                <hr class="dropdown-divider"/>
-                            </li>
-                        <li><a class="dropdown-item" href="/grocery-list">Grocery List</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/log-meal">Log Meal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Profile</a>
-                    </li>
-                    {% if session.get("user_id") %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout" style="border: 2px solid #5A7336; border-radius: 0.5em;">Logout</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </nav>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent" style="margin-right: 8px;">
+                    <ul class="navbar-nav ms-auto mb-2 mb-sm-2">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/dashboard">Home <span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            id="navbarDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            >
+                            Meal Plan
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="/meal-plan">Weekly Meal Plan</a></li>
+                                <li><a class="dropdown-item" href="#">Edit Meal Plan</a></li>
+                                <li>
+                                    <hr class="dropdown-divider"/>
+                                </li>
+                            <li><a class="dropdown-item" href="/grocery-list">Grocery List</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/log-meal">Log Meal</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Profile</a>
+                        </li>
+                        {% if session.get("user_id") %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout" style="border: 2px solid #5A7336; border-radius: 0.5em;">Logout</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
 
-        {% block body %}
-        {% endblock %}
+            {% for msg in get_flashed_messages() %}
+                <p class="flash-msg">
+                    {{ msg }}
+                </p>
+            {% endfor %}
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
-        
-        {% block after_body %}
-        {% endblock %}
+            {% block body %}
+            {% endblock %}
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+            {% block after_body %}
+            {% endblock %}
         </div>
     </div>
 </body>
