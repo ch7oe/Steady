@@ -86,6 +86,20 @@ def login_user():
     
     return render_template("login.html")
 
+@app.route("/logout")
+def logout_user():
+    """Logout a logged in user."""
+
+    # check if "user_id" before attempting to delete
+    if "user_id" in session:
+        del session["user_id"] # remove user_id from session
+        flash("You've been logged out successfully.")
+    else:
+        # if user wasnt logged in
+        flash("You were not logged in.")
+    
+    return redirect("/")
+
 
 @app.route("/dashboard")
 def dashboard():
