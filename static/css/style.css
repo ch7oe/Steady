@@ -1,1 +1,35 @@
+body {
+  background: url(../photos/homepage-login.png) repeat-y center center;
+  background-size: cover;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Arvo", serif;
+  color: white;
+}
+
+/* homepage */
+#homepage-title {
+  text-align: start;
+  color: #A65A17;
+  font-weight: 700;
+  font-size: 80px;
+  text-shadow: 1px 1px 2px black;
+}
+
+.homepage-app-intro {
+  color: white;
+  text-shadow: 1px 1px 2px ;
+}
+.homepage-app-intro-description {
+  color: white;
+}
+
+/* .homepage-reg-log {
+  color: ;
+} */
+
 

@@ -146,6 +146,7 @@ def generate_simple_grocery_list_for_week(user_id, week_start_date, week_end_dat
     
     # convert ingredients dict to a list of its values 
     final_grocery_list = list(ingredient_dicts.values())
+    final_grocery_list = reversed(final_grocery_list)
 
     return final_grocery_list
 
