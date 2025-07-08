@@ -2,6 +2,10 @@
 
 {% block title %}Dashboard - Steady{% endblock %}
 
+{% block head %}
+
+{% endblock %}
+
 {% block body %}
     <!-- welcome  -->
     <div>
@@ -11,61 +15,76 @@
     </div>
 
     <!-- today's meal plan -->
-    <div>
-        <h2>Today's Meal Plan</h2>
-        {% if meal_plan_today and planned_recipes_today %}
-            <ul>
-                {% for planned_recipes in planned_recipes_today %}
-                    <li>
-                        <span>{{ planned_recipes.meal_type }}:</span> <span>{{ planned_recipes.recipe.title }}</span> 
-                    </li>
-                {% endfor %}
-            </ul>
-            <a href="/meal-plan">View/Edit Meal Plan</a>
-        {% else %}
-            <p>No meal plans for today.</p>
-            <a href="/meal-plan">Create Meal Plan for Today</a>
-        {% endif %}
-    </div>
+    <div class="container">
+        <div class="row g-4">
 
-    <!-- today's nutrition analysis -->
-    <div>
-        <h2>Today's Nutrition</h2>
-        {% if today_nutrition %}
-            <ul>
-                {% for nutrient, info in today_nutrition.items() %}
-                    <li>
-                        <span>{{ nutrient }}:</span> <span>{{ info["quantity"] }}{{ info["unit"] }}</span>
-                    </li>
-                {% endfor %}
-            </ul>
-            <a href="/nutrition-analysis">Full Nutrition Report</a>
-        {% else %}
-            <p>Log meals to see today's nutrition!</p>
-            <a href="/log-meal">Log a Meal</a>
-        {% endif %}
-    </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-2 rounded-custom meal-plan-dashboard-card" style="background-color: #e09f49!important; opacity: 0.4;">
+                    <div class="card-body">
+                        <h2 class="card-title h4 mb-3 d-flex align-items-center text-dark mp-dashboard-title">Today's Meal Plan</h2>
+                        {% if meal_plan_today and planned_recipes_today %}
+                            <ul class="mb-2 text-dark">
+                                {% for planned_recipes in planned_recipes_today %}
+                                    <li>
+                                        <span class="text-capitalize text-dark">{{ planned_recipes.meal_type }}:</span> <span class="text-dark">{{ planned_recipes.recipe.title }}</span> 
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <a href="/meal-plan" class="btn btn-success btn-sm mt-4 w-100">View/Edit Meal Plan</a>
+                        {% else %}
+                            <p class="card-text mb-3">No meal plans for today.</p>
+                            <a href="/meal-plan">Create Meal Plan for Today</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
-    <!-- upcoming reminders -->
-    <div>
-        <h2>Reminders</h2>
-        <p>
-            upcoming reminders will be here in the next update!
-        </p>
-        <a href="/reminders">Edit Reminders</a>
-    </div>
+            <!-- today's nutrition analysis -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-2 rounded-custom">
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="card-title h4 text-dark mb-3 d-flex align-items-center">Today's Nutrition</h2>
+                        {% if today_nutrition %}
+                            <div class="flex-grow-1 d-flex justify-content-center align-items-center mb-3">
+                                <canvas id="nutritionChart"></canvas>
+                            </div>
+                        {% else %}
+                            <p class="card-text text-dark flex-grow-1 mb-3">Log meals to see today's nutrition!</p>
+                            <a href="/log-meal" class="btn btn-success btn-sm mt-auto w-100">Log a Meal</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
-    <!-- links -->
-    <div>
-        <a href="/log-meal">Log New Meal</a>
-        <a href="/meal-plan">Plan Next Meal</a>
-        <a href="/grocery-list">View Grocery List</a>
-        <a href="/recipes/search">Search Recipes</a>
-        <a href="/profile">Update Profile</a>
+            <!-- upcoming reminders -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-2 rounded-custom">
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="card-title h4 text-dark mb-3 d-flex align-items-center">Reminders</h2>
+                        <p class="card-text text-dark flex-grow-1 mb-3">
+                            upcoming reminders will be here in the next update!
+                        </p>
+                        <a href="#" class="btn btn-secondary btn-sm mt-auto w-100 disabled">Edit Reminders</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- links -->
+            <!-- <div>
+                <a href="/log-meal">Log New Meal</a>
+                <a href="/meal-plan">Plan Next Meal</a>
+                <a href="/grocery-list">View Grocery List</a>
+                <a href="/recipes/search">Search Recipes</a>
+                <a href="/profile">Update Profile</a>
+            </div> -->
+        </div>
     </div>
 {% endblock %}
 
 {% block after_body %}
+    <!-- chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+
     <script>
         // greeting based on time of day
         document.addEventListener("DOMContentLoaded", () => {
@@ -73,7 +92,7 @@
             const userDashboard = "{{ user.fname }}";
 
             if (greetingDashboard) {
-                const hour = new Date().getHours;
+                const hour = new Date().getHours();
                 let greetingPrefix;
                 if (hour < 12) {
                     greetingPrefix = "Good morning, ";
@@ -83,6 +102,120 @@
                     greetingPrefix = "Good evening, ";
                 }
                 greetingDashboard.textContent = greetingPrefix + userDashboard + "!";
+            }
+
+                        // daily_nutrition_summary from flask to javascript
+            const dailyNutritionSummary = {{ today_nutrition | tojson | safe }};
+
+            // nutrients to display and their goal values
+            // general goals, but want to fetch user-specific goals from DB in the future
+            const nutrientGoals = {
+                "Protein": 70, // grams
+                "Fiber": 30,   // grams
+                "Calcium": 1000, // mg
+                "Vitamin D": 600, // IU
+                "Iron": 15,    // mg 
+                "Vitamin B6": 1.3, // mg
+                "Vitamin B12": 2.4, // mcg
+                "Sodium": 2300 // mg (max recommended)
+            };
+
+            const chartLabels = [];
+            const chartActualData = [];
+            const chartGoalData = [];
+
+            // define custom colors for chart.js
+            const colors = {
+                "mangoMedium": '241, 145, 67',
+                "leafGreen": '76, 175, 80',    
+                "mangoDark": '255, 119, 61',   
+                "leafDark": '56, 142, 60' 
+            };
+
+            // process dailyNutritionSummary for chart.js
+            // iterate through goals to ensure consistent order and include all nutrients
+            for (const nutrientName in nutrientGoals) {
+
+                const actualValue = dailyNutritionSummary[nutrientName] ? dailyNutritionSummary[nutrientName].quantity : 0;
+                const goalValue = nutrientGoals[nutrientName];
+
+                chartLabels.push(nutrientName);
+                chartActualData.push(actualValue);
+                chartGoalData.push(goalValue);
+            }
+
+            const ctx = document.querySelector("#nutritionChart");
+            if (ctx) { 
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: chartLabels,
+                        datasets: [
+                            {
+                                label: "Today",
+                                data: chartActualData,
+                                backgroundColor: `rgba(${colors.mangoMedium}, 0.7)`,
+                                borderColor: `rgba(${colors.mangoDark}, 1)`,
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                barThickness: 20,
+                            },
+                            {
+                                label: "Daily Goal",
+                                data: chartGoalData,
+                                backgroundColor: `rgba(${colors.leafGreen}, 0.7)`,
+                                borderColor: `rgba(${colors.leafDark}, 1)`,
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                barThickness: 20,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // allow chart to fill container
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: "top",
+                                labels: {
+                                    color: "#333333"
+                                }
+                            },
+                            title: {
+                                display: false, // title is already in h2
+                                text: "Today's Nutrient intake vs Goals"
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || "";
+                                        if (label) {
+                                            label += ": ";
+                                        }
+                                        // add unit
+                                        const nutrientName = context.label;
+                                        const unit = dailyNutritionSummary[nutrientName] ? dailyNutritionSummary[nutrientName].unit : "";
+
+                                        return label + context.raw + " " + unit;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { display: false },
+                                ticks: { color: "#555555"}
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: "#EEEEEE"},
+                                ticks: { color: "#555555"}
+                            }
+                        }
+                    }
+                });
             }
         });
     </script>
