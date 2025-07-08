@@ -3,47 +3,59 @@
 {% block title %}Weekly Meal Plan - Steady{% endblock %}
 
 {% block body %}
-    <div>
-        <h1 class="display-4">Your Weekly Meal Plan</h1>
-        <p>
-            Meals planned from {{ week_start.strftime('%B %d') }} to {{ week_end.strftime('%B %d, %Y') }}
-        </p>
-        <div>
-            <a href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Add/Edit Meals</a>
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-light mb-3">Your Weekly Meal Plan</h1>
+            <p class="lead text-gray-600">
+                Meals planned from {{ week_start.strftime('%B %d') }} to {{ week_end.strftime('%B %d, %Y') }}
+            </p>
+            <a class="btn btn-success btn-lg mt-3" href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Edit Meals</a>           
+        </div>
+    
+
+    <!-- meal plan grid -->
+        <div class="row row-cols-xs-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            <!-- loop through each day, to get meal plans for each day -->
+            {% for day_date, meal_for_day in weekly_meal_plan_info.items() %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-2 rounded-custom">
+                        <div class="card-body d-flex flex-column">
+                            <h3 class="card-title h5 fw-semibold text-gray-800 mb-3 border-bottom pb-2 text-center text-dark">
+                                {{ day_date.strftime('%A') }} - <span class="text-gray-500 fw-normal">{{ day_date.strftime('%b %d') }}</span>
+                            </h3>
+                            <div class="flex-grow-1 mb-4">
+                                {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
+                                {% for meal_type in meal_types %}
+                                    <div class="mb-3">
+                                        <h4 class="fw-bold text-gray-700 text-capitalize mb-1 text-dark">{{ meal_type }}:</h4>
+                                        <!-- check if any recipes planned for this meal type -->
+                                        {% if meal_for_day[meal_type] %} 
+                                            <ul class="list-unstyled mb-0 ms-3">
+                                                <!-- loop through each recipe for this meal type -->
+                                                {% for recipe in meal_for_day[meal_type] %}
+                                                    <li>
+                                                        <a href="{{ recipe.recipe.url }}" target="_blank" class="text-primary text-decoration-none hover:text-dark">{{ recipe.recipe.title }}</a> 
+                                                    </li>
+                                                {% endfor %}     
+                                            </ul>
+                                        {% else %}
+                                            <p class="text-dark text-sm mb-0 ms-3">Not planned.</p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="col">
+                <a id="meal-plan-edit-bottom" class="btn btn-success btn-lg mt-3" href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Edit Meals</a>
+            </div>
         </div>
     </div>
 
-    <!-- meal plan grid -->
-    <div>
-        <!-- loop through each day, to get meal plans for each day -->
-        {% for day_date, meal_for_day in weekly_meal_plan_info.items() %}
-            <h3>
-                {{ day_date.strftime('%A') }} - <span>{{ day_date.strftime('%b %d') }}</span>
-            </h3>
-            <div>
-                {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
-                {% for meal_type in meal_types %}
-                    <div>
-                        <h4>{{ meal_type }}:</h4>
-                        <!-- check if any recipes planned for this meal type -->
-                        {% if meal_for_day[meal_type] %} 
-                            <ul>
-                                <!-- loop through each recipe for this meal type -->
-                                {% for recipe in meal_for_day[meal_type] %}
-                                    <li>
-                                        <a href="{{ recipe.recipe.url }}">{{ recipe.recipe.title }}</a> 
-                                    </li>
-                                {% endfor %}     
-                            </ul>
-                        {% else %}
-                            <p>Not planned.</p>
-                        {% endif %}
-                    </div>
-                {% endfor %}    
-            </div>
-        {% endfor %}
-    </div>
-    <div>
+
+    <!-- <div>
         <a href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Add/Edit Meals</a>
-    </div>
+    </div> -->
 {% endblock %}

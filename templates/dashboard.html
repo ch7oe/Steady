@@ -62,7 +62,7 @@
                     <div class="card-body d-flex flex-column">
                         <h2 class="card-title h4 text-dark mb-3 d-flex align-items-center">Reminders</h2>
                         <p class="card-text text-dark flex-grow-1 mb-3">
-                            upcoming reminders will be here in the next update!
+                            Upcoming reminders will be here in the next update.
                         </p>
                         <a href="#" class="btn btn-secondary btn-sm mt-auto w-100 disabled">Edit Reminders</a>
                     </div>
@@ -95,11 +95,11 @@
                 const hour = new Date().getHours();
                 let greetingPrefix;
                 if (hour < 12) {
-                    greetingPrefix = "Good morning, ";
+                    greetingPrefix = "Good Morning, ";
                 } else if (hour < 18) {
-                    greetingPrefix = "Good evening, ";
+                    greetingPrefix = "Good Evening, ";
                 } else {
-                    greetingPrefix = "Good evening, ";
+                    greetingPrefix = "Good Evening, ";
                 }
                 greetingDashboard.textContent = greetingPrefix + userDashboard + "!";
             }
