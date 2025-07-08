@@ -11,6 +11,14 @@ html, body {
   color: white;
 }
 
+h1 {
+  margin: 8px 8px 8px 12px;
+}
+
+.navbar {
+  
+}
+
 /* homepage */
 #homepage-title {
   text-align: start;
