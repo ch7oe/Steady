@@ -18,7 +18,7 @@
             <!-- loop through each day, to get meal plans for each day -->
             {% for day_date, meal_for_day in weekly_meal_plan_info.items() %}
                 <div class="col">
-                    <div class="card h-100 shadow-sm border-2 rounded-custom">
+                    <div class="card h-100 shadow-sm border-2">
                         <div class="card-body d-flex flex-column">
                             <h3 class="card-title h5 fw-semibold text-gray-800 mb-3 border-bottom pb-2 text-center text-dark">
                                 {{ day_date.strftime('%A') }} - <span class="text-gray-500 fw-normal">{{ day_date.strftime('%b %d') }}</span>
@@ -49,7 +49,9 @@
                 </div>
             {% endfor %}
             <div class="col">
-                <a id="meal-plan-edit-bottom" class="btn btn-success btn-lg mt-3" href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Edit Meals</a>
+                <div class="text-center">
+                    <a id="meal-plan-edit-bottom" class="btn btn-success btn-lg mt-3" href="/meal-plan/edit/{{ week_start.strftime('%Y-%m-%d') }}">Edit Meals</a>
+                </div>
             </div>
         </div>
     </div>

@@ -2,22 +2,57 @@
 {% block title %}Steady{% endblock %}
 
 {% block body %}
-    <h1 class="display-4" id="homepage-title">Steady</h1>
+    <div>
+        <div>
+            <h1 class="display-3 fw-bold mb-4 text-center text-success" id="homepage-title">Steady</h1>
+        </div>
 
-    <h2 class="homepage-app-intro">Steady helps Parkinson's patients navigate dietary needs with personalized meal planning, nutrition tracking, and mindful eating.</h2>
+        <p class="homepage-app-intro lead fw-semibold mb-4 px-5 text-center">Steady helps Parkinson's patients navigate dietary needs with personalized meal planning, nutrition tracking, and mindful eating.</p>
+        
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+            <a href="/register" class="homepage-reg-log btn btn-lg btn-success">Get Started</a>
+            <a href="/login" class="homepage-reg-log btn btn-lg btn-success">Login</a>
+        </div>
 
-    <a href="/register" class="homepage-reg-log">Get Started</a>
-    <a href="/login" class="homepage-reg-log">Login</a>
+        <!-- features -->
+        <div class="container my-5">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <div class="col">
+                    <div class="card h-100 shadow-lg border-0" style="background-color: #FAF9F6; opacity: 1;">
+                        <div class="card-body p-4">
+                            <h3 class="homepage-app-intro card-title h4 fw-semibold mb-2 text-dark text-center">Personalized Meal Plans</h3>
+                            <div class="text-center">
+                                <i class="bi bi-fork-knife mb-3 fs-1" style="color: black;"></i>
+                            </div>
+                            <p class="homepage-app-intro-description card-text text-dark text-center">Create daily and weekly meal plans tailored to your medication, allergies, and unique nutritional goals.</p>
+                        </div>
+                    </div>
+                </div>
 
-    <h3 class="homepage-app-intro">Personalized Meal Plans</h3>
-    <p class="homepage-app-intro-description">Create daily and weekly meal plans tailored to your medication, allergies, and unique nutritional goals. 
-        Reduce mealtime stress.</p>
+                <div class="col">
+                    <div class="card h-100 shadow-lg border-0" style="background-color: #FAF9F6; opacity: 1;">
+                        <div class="card-body p-4">
+                            <h3 class="homepage-app-intro card-title h4 fw-semibold mb-2 text-dark text-center">Nutrition Tracking</h3>
+                            <div class="text-center">
+                                <i class="bi bi-bar-chart-line-fill mb-3 fs-1" style="color: black;"></i>
+                            </div>
+                            <p class="homepage-app-intro-description card-text text-dark text-center">Easily log your meals and gain insights into your intake of key nutrients like protein, fiber, and vitamins.</p>
+                        </div>
+                    </div>
+                </div>
 
-    <h3 class="homepage-app-intro">Nutrition Tracking</h3>
-    <p class="homepage-app-intro-description">Easily log your meals and gain insights into your intake of key nutrients like protein, fiber, and vitamins. 
-        Spot nutritional trends without effort.</p>
-
-    <h3 class="homepage-app-intro">Grocery Lists</h3>
-    <p class="homepage-app-intro-description">Automatically generate grocery lists from your meal plans</p>
-
+                <div class="col">
+                    <div class="card h-100 shadow-lg border-0" style="background-color: #FAF9F6; opacity: 1;">
+                        <div class="card-body p-4">
+                            <h3 class="homepage-app-intro card-title h4 fw-semibold mb-2 text-dark text-center">Grocery Lists</h3>
+                            <div class="text-center">
+                                <i class="bi bi-cart3 mb-3 fs-1" style="color: black;"></i>
+                            </div>
+                            <p class="homepage-app-intro-description card-text text-dark text-center">Automatically generate grocery lists from your meal plans.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
