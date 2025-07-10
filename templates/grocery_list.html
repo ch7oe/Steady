@@ -3,39 +3,46 @@
 {% block title %}Grocery List - Steady{% endblock %}
 
 {% block body %}
-    <div>
-        <div>
-            <h1 class="display-4">Your Grocery List</h1>
-            <p>
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold">Your Grocery List</h1>
+            <p class="lead">
                 Food items needed for your meal plans from {{ week_start_date.strftime("%B %d") }} to {{ week_end_date.strftime("%B %d, %Y") }}.
             </p>
         </div>
 
         {% if grocery_list %}
-        <div>
-            <h2>
-                All Items 
-            </h2>
-            <ul>
-                {% for item in grocery_list %}
-                    <li>
-                        <span>{{ item.name }}:</span>
-                        <span>{{ item.quantity | round(2) }}</span>
-                        <span>{{ item.unit}}</span>
-                    </li>
-                {% endfor %}
-            </ul>
+        <div class="card shadow-lg border-0 rounded mx-auto text-dark" style="max-width: 600px;">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="card-title h4 fw-bold mb-4 border-bottom pb-2 text-center">
+                    <i class="bi bi-cart3 me-2"></i> All Items 
+                </h2>
+                <ul class="list-unstyled mb-0">
+                    {% for item in grocery_list %}
+                        <li class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                            <span class="fs-5 fw-semibold">{{ item.name }}:</span>
+                            <div>
+                                <span class="fs-5 fw-bold me-1">{{ item.quantity | round(2) }}</span>
+                                <span>{{ item.unit}}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         {% else %}
-        <div>
-            <!-- message if no grocery list could be generated -->
-            <p>
-                No grocery list generated. Create a meal plan for this week first!
-            </p>
-            <a href="/meal-plan">
-                Go to meal plan
-            </a>
+        <div class="card shadow-lg border-0 rounded mx-auto text-center" style="max-width: 600px;">
+            <div class="card-body p-b p-md-5">
+                <!-- message if no grocery list could be generated -->
+                <h2 class="card-title h4 fw-bold mb-4">No Grocery List Yet!</h2>
+                <p class="card-text mb-4">
+                    No grocery list generated. Create a meal plan for this week first!
+                </p>
+                <a href="/meal-plan" class="btn btn-success btn-lg shadow-sm">
+                    <i class="bi bi-fork-knife me-2"></i> Go to Meal Plan
+                </a>
+            </div>
         </div>
         {% endif %}
     </div>
