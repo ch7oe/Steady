@@ -3,59 +3,68 @@
 {% block title %}Log a Meal - Steady{% endblock %}
 
 {% block body %}
-    <div>
-        <div>
-            <h1 class="display-4">Log Your Meal</h1>
-            <p>Record what you've eaten to track your nutrition.</p>
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3">Log Your Meal</h1>
+            <p class="lead mb-4">Record what you've eaten to track your nutrition.</p>
         </div>
 
         <!-- select data and meal type -->
-        <div>
-            <h2>Meal Details</h2>
+        <div class="card shadow-sm border-0 rounded text-dark" style="opacity: 1; background-color: white;">
+            <div class="card-body">
+                <h2 class="card-title h4 mb-4 border-bottom pb-2">Meal Details</h2>
+                <div class="row g-3 mb-4">
+                    <!-- date -->
+                    <div class="col-md-6">
+                        <label for="log-date" class="form-label fw-semibold">Date</label>
+                        <input type="date" id="log-date" value="{{ today_str }}" class="form-control">
+                    </div>
 
-            <!-- date -->
-            <div>
-                <label for="log-date">Date</label>
-                <input type="date" id="log-date" value="{{ today_str }}">
+                    <!-- meal type -->
+                    <div class="col-md-6">
+                        <label for="meal-type" class="form-label fw-semibold">Meal Type to Search or Log for</label>
+                        <select id="meal-type" class="form-select">
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                            <option value="snack">Snack</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="view-logged-meals-bttn" class="btn btn-success w-100">
+                    View/Refresh Logged Meals for Selected Date
+                </button>
             </div>
 
-            <!-- meal type -->
-            <div>
-                <label for="meal-type">Meal Type</label>
-                <select id="meal-type">
-                    <option value="breakfast">Breakfast</option>
-                    <option value="lunch">Lunch</option>
-                    <option value="dinner">Dinner</option>
-                    <option value="snack">Snack</option>
-                </select>
+            <!-- logged meals for selected date -->
+            <div id="logged-meals-display" class="card shadow-sm border-0 rounded mb-5" style="min-height: 100px;">
+                <div class="card-body text-dark">
+                    <h2 class="card-title h4 mb-4 border-bottom pb-2">Meals Logged for <span id="current-logged-date">{{ today_str }}</span>:</h2>
+                    <div id="logged-meals-list">
+                        <p class="text-center">Select a date and click "View/Refresh" to see logged meals.</p>
+                        <!-- will be added using javascript  -->
+                    </div>
+                </div>
             </div>
-            <button id="view-logged-meals-bttn">
-                View/Refresh Logged Meals for Selected Date
-            </button>
-        </div>
 
-        <!-- logged meals for selected date -->
-        <div id="logged-meals-display">
-            <h2>Meals Logged for <span id="current-logged-date">{{ today_str }}</span>:</h2>
-            <div id="logged-meals-list">
-                <p>Select a date and click "View" to see logged meals.</p>
-                <!-- will be added using javascript  -->
-            </div>
-        </div>
+            <!-- recipe search section (for logging) -->
+            <div class="card shadow-sm border-0 rounded">
+                <div class="card-body d-flex flex-column text-dark">
+                    <h2 class="card-title h4 mb-4 border-bottom pb-2">Search Recipes to Log:</h2>
+                    <div class="input-group mb-3">
+                        <label for="recipe-search-input-log" class="visually-hidden">Search for recipes</label>
+                        <input type="text" id="recipe-search-input-log" placeholder="Search for recipes" class="form-control">
+                        <button id="search-recipes-bttn-log" class="btn btn-success">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                    
 
-        <!-- recipe search section (for logging) -->
-        <div>
-            <h2>Search Recipes to Log:</h2>
-            <div>
-                <input type="text" id="recipe-search-input-log" placeholder="Search for recipes">
-            </div>
-            <button id="search-recipes-bttn-log">
-                Search
-            </button>
-
-            <div id="search-results-log">
-                <p>Start searching to find recipes to log.</p>
-                <!-- results added using javascript -->
+                    <div id="search-results-log" class="row row-cols-1 row-cols-sm-2 g-3 flex-grow-1">
+                        <p class="text-center col-12">Start searching to find recipes to log.</p>
+                        <!-- results added using javascript -->
+                    </div>
+                </div>
             </div>
         </div> 
     </div>
@@ -83,7 +92,7 @@
 
         currentLoggedDateSpan.textContent = new Date(selectedDate).toUTCString().slice(0,-13);
 
-        loggedMealsListDiv.innerHTML = "<p>loading logged meals...</p>";
+        loggedMealsListDiv.innerHTML = "<div class='spinner-border text-success' role='status'></div><p class='text-center visually-hidden'>loading logged meals...</p>";
 
         console.log(selectedDate);
         console.log(currentLoggedDateSpan);
@@ -95,7 +104,7 @@
                 loggedMealsListDiv.innerHTML = "";
 
                 if (responseJson.length === 0) {
-                    loggedMealsListDiv.innerHTML = "<p>No meals logged for this date.</p>";
+                    loggedMealsListDiv.innerHTML = "<p class='text-danger text-center'>No meals logged for this date.</p>";
                 } else {
                     // group meals by meal type 
                     const groupedMeals = {};
@@ -131,18 +140,19 @@
                             let listOfMealLogsHtml = "";
                             for (const loggedMeal of mealsOfType) { // loop through each meal log entry
                                 listOfMealLogsHtml += `
-                                    <li>
+                                    <li class='d-flex align-items-center justify-content-between mb-1'>
                                         ${loggedMeal.recipe_title} (Servings: ${loggedMeal.serving_size})
-                                        <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}" class="remove-from-log-buttn">
-                                            Remove
+
+                                        <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}" class="remove-from-log-buttn btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash-fill"></i>
                                         </button> 
                                     </li>
                                 `;
                             }
 
                             mealGroupDiv.innerHTML = `
-                                <h4>${type}</h4>
-                                <ul>
+                                <h4 class='fw-bold text-capitalize mb-2'>${type}</h4>
+                                <ul class='list-unstyled mb-0 ms-3'>
                                     ${listOfMealLogsHtml}
                                 </ul>
                             `;
@@ -186,12 +196,12 @@
         const query = searchInputLog.value.trim();
 
         if (!query) {
-            searchResultsLogDiv.innerHTML = "<p>Enter a search term to view recipes</p>";
+            searchResultsLogDiv.innerHTML = "<p class='text-center col-span-full'>Enter a search term to view recipes</p>";
             
             return;
         }
 
-        searchResultsLogDiv.innerHTML = "<p>Searching...</p>";
+        searchResultsLogDiv.innerHTML = "<div class='spinner-border text-success' role='status'></div><p class='text-center visually-hidden'>Searching...</p>";
 
         fetch(`/api/recipes/search?query=${query}`)
         .then((response) => response.json())
@@ -199,18 +209,25 @@
 
             searchResultsLogDiv.innerHTML = "";
 
-            if (responseJson.length === 0) {
-                searchResultsLogDiv.innerHTML = "<p>No recipes found matching your criteria.</p>";
+            if (responseJson.length === 0 || !responseJson.length) {
+                searchResultsLogDiv.innerHTML = "<p class='text-center'>No recipes found matching your criteria.</p>";
             } else {
                 for (const recipe of responseJson) {
                     const recipeCard = document.createElement("div");
 
+                    recipeCard.className = 'col';
+
                     recipeCard.innerHTML = `
-                    <h4 class="font-semibold text-gray-800 text-lg mb-2">${recipe.title}</h4>
-                    <p>Servings: ${recipe.servings}</p>
-                    <button data-recipe-id="${recipe.id}" data-recipe-title="${recipe.title}" data-recipe-servings="${recipe.servings}" class="log-recipe-bttn">
-                        Log This Recipe
-                    </button>
+                    <div class='card h-100 shadow-sm border-0 rounded'>
+                        <div class='card-body'>
+                            <h4 class="card-title h5 mb-2">${recipe.title}</h4>
+                            <p class='card-text mb-1'>Servings: ${recipe.servings}</p>
+                            <a href='${recipe.url}'' target='_blank' rel='noopener noreferrer' class='card-link mb-3 text-success'>
+                            <button data-recipe-id='${recipe.id}' data-recipe-title='${recipe.title}' data-recipe-servings='${recipe.servings}' class="log-recipe-bttn btn btn-sm btn-success mt-auto">
+                                Log This Recipe
+                            </button>
+                        </div>
+                    </div>
                     `;
                     searchResultsLogDiv.appendChild(recipeCard);
                 };
