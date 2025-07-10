@@ -132,7 +132,7 @@
                             for (const loggedMeal of mealsOfType) { // loop through each meal log entry
                                 listOfMealLogsHtml += `
                                     <li>
-                                        ${loggedMeal.recipe_title} (${loggedMeal.serving_size} serving(s))
+                                        ${loggedMeal.recipe_title} (Servings: ${loggedMeal.serving_size})
                                         <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}">
                                             Remove
                                         </button> 

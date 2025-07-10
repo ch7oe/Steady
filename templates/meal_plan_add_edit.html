@@ -5,78 +5,92 @@
 {% block title %}Plan for {{ target_date.strftime("%A, %B, %d, %Y") }} - Steady{% endblock %}
 
 {% block body %}
-    <div>
-        <h1 class="display-4">
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold mb-3">
             Plan Meals for {{ target_date.strftime("%A, %B, %d, %Y") }}
         </h1>
-        <p>Add or remove recipes for your meal plan.</p>
-        <form action="/meal-plan/edit/{{ target_date.strftime('%Y-%m-%d') }}" method="POST">
-            <label for="date-string">Choose another day:</label>
-            <input type="date" name="date-string" id="date-string">
-            <button type="submit">Change Date</button>
+        <p class="lead mb-4">Add or remove recipes for your meal plan.</p>
+
+        <!-- date change form  -->
+        <form action="/meal-plan/edit/{{ target_date.strftime('%Y-%m-%d') }}" method="POST" class="d-inline-flex align-items-center gap-2">
+            <label for="date-string" class="form-label mb-0 fw-semibold">Choose another day:</label>
+            <input type="date" name="date-string" id="date-string" value="{{ target_date.strftime('%Y-%m-%d') }}" class="form-control w-auto">
+            <button type="submit" class="btn btn-success">Change Date</button>
         </form>
     </div>
     
     <!-- current planned meals for this day -->
-    <div>
-        <h2>
-            Currently Planned:
-        </h2>
-        {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
-        {% if current_planned_meals_for_day %}
-            {% for meal_type in meal_types %}
-                <div>
-                    <h3>{{ meal_type }}:</h3>
-                    {% if current_planned_meals_for_day[meal_type] %}
-                    <ul>
-                        {% for meal_plan_recipe in current_planned_meals_for_day[meal_type] %}
-                        <li>
-                            {{ meal_plan_recipe.recipe.title }}
-                            
-                            <button class="remove-from-plan-buttn" id="remove-recipe" data-recipe-id="{{ meal_plan_recipe.recipe_id }}" data-meal-type="{{ meal_plan_recipe.meal_type }}">
-                                Remove recipe
-                            </button>
-                        </li>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0 rounded text-dark" style="opacity: 1; background-color: white;">
+                <div class="card-body">
+                    <h2 class="card-title h4 mb-3 border-bottom pb-2">
+                        Currently Planned:
+                    </h2>
+                    {% set meal_types = ['breakfast', 'lunch', 'dinner', 'snack'] %}
+                    {% if current_planned_meals_for_day %}
+                        {% for meal_type in meal_types %}
+                            <div class="mb-3">
+                                <h3 class="fw-bold text-capitalize justify-content-between mb-1">{{ meal_type }}:</h3>
+                                {% if current_planned_meals_for_day[meal_type] %}
+                                <ul class="list-unstyled mb-0 ms-3">
+                                    {% for meal_plan_recipe in current_planned_meals_for_day[meal_type] %}
+                                    <li class="d-flex align-items-center justify-content-between mb-1">
+                                        {{ meal_plan_recipe.recipe.title }}
+                                        
+                                        <button class="remove-from-plan-buttn btn btn-sm btn-success" id="remove-recipe" data-recipe-id="{{ meal_plan_recipe.recipe_id }}" data-meal-type="{{ meal_plan_recipe.meal_type }}">
+                                            <i class="bi bi-trash"></i> <span>Remove recipe</span>
+                                        </button>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="text-sm mb-0 ms-3">No {{ meal_type }} planned.</p>
+                                {% endif %}
+                            </div>
                         {% endfor %}
-                    </ul>
                     {% else %}
-                    <p>No {{ meal_type }} planned.</p>
+                        <p class="text-center">No meals planned for this day yet.</p>
                     {% endif %}
                 </div>
-            {% endfor %}
-        {% else %}
-            <p>No meals planned for this day yet.</p>
-        {% endif %}
-    </div>
-
-    <!-- recipe search section -->
-    <div>
-        <h2>
-            Search & Add Recipes:
-        </h2>
-        <div>
-            <label for="recipe-search-input">Recipe Search</label>
-            <input type="text" name="recipe-search" id="recipe-search-input" placeholder="Search for recipes (ex. 'chicken soup')">
-            <button id="recipe-search-button">
-                Search
-            </button>
+            </div>
         </div>
 
-        <!-- basic filters for search -->
-        <div>
-            <span>Filters:</span>
-            <span>
-                <label for="filter-likes">My Liked Ingredients</label>
-                <input type="checkbox" name="filter-likes" id="filter-likes">
-            </span>
-        </div>
+        <!-- recipe search section -->
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0 rounded text-dark" style="opacity: 1; background-color: white;">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="card-title h4 mb-3 border-bottom pb-2">
+                        Search & Add Recipes:
+                    </h2>
+                    <div class="input-group mb-3">
+                        <label for="recipe-search-input" class="visually-hidden">Recipe Search</label>
+                        <input type="text" name="recipe-search" id="recipe-search-input" placeholder="Search for recipes (ex. 'chicken soup')" class="form-control">
+                        <button id="recipe-search-button" class="btn btn-success">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
 
-        <!-- recipe search results -->
-        <div id="search-results">
-            <!-- search results will be inserted here by javascript (AJAX -->
-            <p>Start searching to find recipes 🍽️</p>
+                    <!-- basic filters for search -->
+                    <div class="d-flex flex-wrap gap-3 mb-3">
+                        <span class="fw-bold text-sm">Filters:</span>
+                        <div class="form-check form-switch">
+                            <label for="filter-likes" class="form-check-label">My Liked Ingredients</label>
+                            <input type="checkbox" name="filter-likes" id="filter-likes" class="form-check-input">
+                        </div>
+                    </div>
+
+                    <!-- recipe search results -->
+                    <div id="search-results" class="row row-cols-1 row-cols-sm-2 g-3 flex-grow-1">
+                        <!-- search results will be inserted here by javascript (AJAX -->
+                        <p class="text-center col-12">Start searching to find recipes 🍽️</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </div> 
+</div>
 {% endblock %}
 
 {% block after_body %}
@@ -94,7 +108,7 @@
         recipeSearchBttn.addEventListener("click", (evt) => {
             const queryRecipeSearch = recipeSearchInput.value.trim();
             if (!queryRecipeSearch) {
-                recipeSearchResultDiv.textContent = "Please enter search term."
+                recipeSearchResultDiv.innerHTML = "<p class='text-center col-span-full'>Please enter search term.</>";
                 return;
             };
 
@@ -102,7 +116,7 @@
             const likesFilter = filterLikesCheckbox.checked;
 
             // show a loading message to user
-            recipeSearchResultDiv.innerHTML = "<p>Searching...</p>";
+            recipeSearchResultDiv.innerHTML = "<div class='spinner-border text-success' role='status'></div><p class='text-center col-span-full visually-hidden'>Searching...</p>";
 
             const params = new URLSearchParams({
                 query: queryRecipeSearch,
@@ -123,17 +137,21 @@
                     }
 
                     if (responseJson.length === 0) {
-                        recipeSearchResultDiv.innerHTML = "<p>No recipes found matching criteria.</p>";
+                        recipeSearchResultDiv.innerHTML = "<p class='text-center col-span-full'>No recipes found matching criteria.</p>";
                     } else {
                         for (const recipe of responseJson) {
                             const recipeCard = document.createElement("div");
                             recipeCard.innerHTML = `
-                            <h4>${recipe.title}</h4>
-                            <p>Servings: ${recipe.servings}</p>
-                            <a href="${recipe.url}">View Recipe</a>
-                            <button class="add-to-plan-buttn" data-recipe-id="${recipe.id}" data-recipe-title="${recipe.title}" data-recipe-servings="${recipe.servings}">
-                                Add to Plan
-                            </button>
+                            <div class="card h-100 shadow-sm border-0 rounded">
+                                <div class="card-body d-flex flex-column">
+                                    <h4 class="card-title h5 mb-2">${recipe.title}</h4>
+                                    <p class="card-text mb-1">Servings: ${recipe.servings}</p>
+                                    <a href="${recipe.url}" target="_blank" rel="noopener noreferrer" class="card-link mb-3 text-success">View Recipe</a>
+                                    <button class="add-to-plan-buttn btn btn-sm btn-success mt-auto w-100" data-recipe-id="${recipe.id}" data-recipe-title="${recipe.title}" data-recipe-servings="${recipe.servings}">
+                                        Add to Plan
+                                    </button>
+                                </div>
+                            </div>
                             `;
                             recipeSearchResultDiv.appendChild(recipeCard)
 
