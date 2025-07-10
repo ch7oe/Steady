@@ -34,6 +34,9 @@ def register():
         # swallow_difficulty = request.form.get("swallow-diff")
         weight = request.form.get("weight")
 
+        diet_restrictions_list = request.form.getlist("diet_restrictions") # getlist for checkboxes
+        nutrition_goals_list = request.form.getlist("nutrition_goals") # getlist for checkboxes
+        allergies_string = request.form.get("allergies", "") # get comma-separated string
 
         existing_user = crud.get_user_by_email(email)
         
@@ -50,6 +53,29 @@ def register():
                 weight=weight
             )
             db.session.add(new_user)
+            db.session.commit()
+
+            # add dietary restrictions
+            for restriction in diet_restrictions_list:
+                # crud.create_diet_restriction
+                diet_restriction_object = crud.create_diet_restriction(new_user.user_id, restriction)
+                db.session.add(diet_restriction_object)
+            
+            # add nutritional goals 
+            for goal in nutrition_goals_list:
+                # crud.create_nutrition_goal
+                nutrition_goal_obj = crud.create_nutrition_goal(new_user.user_id, goal)
+                db.session.add(nutrition_goal_obj)
+            
+            # add allergies
+            if allergies_string:
+                allergies_cleaned = [a.strip() for a in allergies_string.split(",")]
+
+                for allergy in allergies_cleaned:
+                    # crud.create_allergy
+                    allergy_object = crud.create_allergy(new_user.user_id, allergy)
+                    db.session.add(allergy_object)
+            
             db.session.commit()
 
             # login user automatically after sign up
