@@ -133,7 +133,7 @@
                                 listOfMealLogsHtml += `
                                     <li>
                                         ${loggedMeal.recipe_title} (Servings: ${loggedMeal.serving_size})
-                                        <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}">
+                                        <button data-meal-log-id="${loggedMeal.meal_log_id}" data-recipe-id="${loggedMeal.recipe_id}" data-meal-type="${loggedMeal.meal_type}" class="remove-from-log-buttn">
                                             Remove
                                         </button> 
                                     </li>
@@ -150,6 +150,32 @@
                             loggedMealsListDiv.appendChild(mealGroupDiv);
                         }
                     }
+                }
+                removeRecipeButtons = document.querySelectorAll(".remove-from-log-buttn");
+
+                for (const button of removeRecipeButtons) {
+                    button.addEventListener("click", (evt) => {
+                        const mealLogId = button.dataset.mealLogId
+                        const recipeId = button.dataset.recipeId
+                        const mealType = button.dataset.mealType
+
+                        fetch("/api/meal-log-remove", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                meal_log_id: mealLogId,
+                                recipe_id: recipeId,
+                                meal_type: mealType
+                            }),
+                        })
+                        .then((response) => response.json())
+                        .then((responseJson) => {
+                            alert((responseJson.message));
+                            window.location.reload();
+                        });
+                    });
                 }
             });
     });
@@ -230,6 +256,9 @@
             }
         });
     });
+
+    // event listeners for "Remove recipe" - remove from meal log
+
 
     // 
 

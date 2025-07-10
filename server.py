@@ -529,10 +529,10 @@ def api_remove_logged_meal():
     if not all([meal_log_id, recipe_id, meal_type]):
         return jsonify({"message": "Missing required data."})
     
-    ml_to_delete = db.session.query(MealLogRecipe).filter(
+    ml_to_delete = db.session.query(MealLogRecipe).join(MealLog).filter(
         MealLogRecipe.meal_log_id == meal_log_id,
         MealLogRecipe.recipe_id == recipe_id,
-        MealLogRecipe.meal_log.meal_type == meal_type
+        MealLog.meal_type == meal_type
     ).first()
 
     if ml_to_delete:

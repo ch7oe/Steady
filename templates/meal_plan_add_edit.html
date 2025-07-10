@@ -206,9 +206,9 @@
         });
         
         // event listeners for "Remove recipe" buttons on recipes
-        RemoveRecipeButtons = document.querySelectorAll(".remove-from-plan-buttn");
+        removeRecipeButtons = document.querySelectorAll(".remove-from-plan-buttn");
 
-        for (const button of RemoveRecipeButtons) {
+        for (const button of removeRecipeButtons) {
             button.addEventListener("click", (evt) => {
                 const recipeId = button.dataset.recipeId;
                 const mealType = button.dataset.mealType;
