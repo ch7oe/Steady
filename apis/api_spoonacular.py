@@ -9,10 +9,12 @@ import os
 API_KEY = os.environ['SPOONACULAR_KEY']
 SPOONACULAR_BASE_URL = "https://api.spoonacular.com/recipes"
 
-def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_diet_restrictions=None, user_likes=None, user_dislikes=None, limit=50):
-    """Send search recipes request to Spoonacular API. Cache and return fetched recipes."""
+def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_diet_restrictions=None, user_dislikes=None, protein_goal=None, limit=20):
+    """Send search recipes request to Spoonacular API. Cache and return fetched recipes.
+    protein_goal: "high" (>= 25g) or "low" (<= 10g)
+    """
 
-    headers = {'x-api-key': API_KEY} # can put api key for spoonacular in header or query string 
+    headers = {'x-api-key': API_KEY} 
 
     spoonacular_params = {
         'query': recipe_query, # natural language recipe search query
@@ -20,30 +22,39 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
         'instructionsRequired': True,
         'addRecipeInformation': True, 
         'addRecipeNutrition': True,
-        'fillIngredients': True
+        'fillIngredients': True,
+        'ignorePantry': True # assumes user has basics like salt/pepper
     }
 
-    # user specific filters 
+    # user critical filters (allergies/diet)
     if user_allergens:
-        spoonacular_params['intolerances'] = ', '.join(user_allergens)
+        spoonacular_params['intolerances'] = ','.join(user_allergens)
     
     if user_diet_restrictions:
-        spoonacular_params['diet'] = ', '.join(user_diet_restrictions)
+        spoonacular_params['diet'] = ','.join(user_diet_restrictions)
 
-    if user_likes:
-        spoonacular_params['includeIngredients'] = ', '.join(user_likes)
+    # parkinson's protein logic -- Levodopa management
+    if protein_goal == "high":
+        spoonacular_params['minProtein'] = 25 # grams
+    elif protein_goal == "low":
+        spoonacular_params['maxProtein'] = 15 # grams
     
     if user_dislikes:
-        spoonacular_params['excludeIngredients'] = ', '.join(user_dislikes)
+        
+        top_dislikes = user_dislikes[:5]
+        spoonacular_params['excludeIngredients'] = ','.join(top_dislikes)
     
-    # try and except????
-    response = requests.get(f'{SPOONACULAR_BASE_URL}/complexSearch', headers=headers, params=spoonacular_params)
-    response = response.json()
+    try:
+        response = requests.get(f'{SPOONACULAR_BASE_URL}/complexSearch', params=spoonacular_params)
+        response.raise_for_status() # raise error if API fails
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Spoonacular API Error: {e}")
+        return []
 
-    spoonacular_recipes = response.get('results', [])
+    spoonacular_recipes = data.get('results', [])
     cached_recipes_from_database = []
 
-    # new_recipes_to_add = []
     new_ingredients_to_add = []
     new_recipe_nutrients_to_add = []
 
@@ -53,7 +64,7 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
         existing_recipe = get_recipe_by_spoonacular_id(recipe['id'])
 
         if not existing_recipe: # if not in database
-            # create new recipe in database
+            # create new recipe
             new_recipe = create_recipe(
                 spoonacular_id=recipe['id'],
                 title=recipe.get('title', 'No title'),
@@ -65,8 +76,8 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                 texture=None
             )
             db.session.add(new_recipe)
-            db.session.commit()
-            # new_recipes_to_add.append(new_recipe) # add to list of recipes to add/commit
+            db.session.commit() # commit to get the ID
+            
 
             # cache ingredients
             if 'extendedIngredients' in recipe:
@@ -83,7 +94,8 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
             # from setting 'addRecipeNutrition' param to True
             if 'nutrition' in recipe and 'nutrients' in recipe['nutrition']:
                 for nutrient in recipe['nutrition']['nutrients']:
-
+                    
+                    # make sure nutrient exists
                     nutrient_in_recipe = get_or_create_nutrient(nutrient['name'], nutrient['unit'])
 
                     new_recipe_nutrient = create_recipe_nutrient(
@@ -93,12 +105,12 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
                     )
                     new_recipe_nutrients_to_add.append(new_recipe_nutrient)
 
-            cached_recipes_from_database.append(new_recipe) # append to list of recipes cached during this fetch
+            cached_recipes_from_database.append(new_recipe) 
 
         else:
             cached_recipes_from_database.append(existing_recipe)
         
-        # db.session.add_all(new_recipes_to_add)
+        # bulk add ingredients and nutrients
         db.session.add_all(new_ingredients_to_add)
         db.session.add_all(new_recipe_nutrients_to_add)
         db.session.commit()
