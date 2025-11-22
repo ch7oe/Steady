@@ -306,110 +306,51 @@ def get_recipe_by_spoonacular_id(spoonacular_id):
     return db.session.query(Recipe).filter(Recipe.spoonacular_id==spoonacular_id).first()
 
 
-def get_recipes_by_search(user_id, search_term, likes=None, limit=50):
-    """Filters recipes based on search term and user's personal info/settings."""
+def get_recipes_by_search(user_id, search_term, protein_goal, limit=50):
+    """Filters recipes based on search term, allergies, and protein goal."""
 
     # get user
     user = db.session.query(User).get(user_id)
 
     if not user:
-        print("User not found.")
-        return 
+        return []
     
     # user specific data 
     user_allergens = {a.allergen for a in user.allergies} # user allergies 
-    user_diet_restrictions = {dr.restriction for dr in user.diet_restrictions} # user diet restrictions
-    user_nutrition_goals = {ng.goal for ng in user.nutrition_goals} # user nutrtion goals
-    user_likes = {like.name for like in user.likes_dislikes if like.preference == "like"} # user likes -- for extra filtering
-    user_dislikes = {dislike.name for dislike in user.likes_dislikes if dislike.preference == "dislike"} # user dislikes 
-
-    # initial query --> where search term is included in a recipe's title OR ingredients
-    initial_query = db.session.query(Recipe).outerjoin(Ingredient, Recipe.recipe_id == Ingredient.recipe_id).filter(
-        ((Recipe.title.ilike(f"%{search_term}%")) | (Ingredient.name.ilike(f"%{search_term}%")))
+    
+    # 1. initial query: where search term is included in a recipe's title OR ingredients
+    query = db.session.query(Recipe).outerjoin(Ingredient).filter(
+        (Recipe.title.ilike(f"%{search_term}%")) |
+        (Ingredient.name.ilike(f"%{search_term}%"))
     ).distinct()
 
-    current_filtered_recipes = initial_query
-
-    # exclude user allergens
+    # 2. exclude allergens 
     for allergen in user_allergens:
-        current_filtered_recipes = current_filtered_recipes.filter(~Recipe.ingredients.any(Ingredient.name.ilike(f"%{allergen}%")))
-    
-    # exclude user dislikes 
-    # for dislike in user_dislikes:
-    #     current_filtered_recipes = current_filtered_recipes.filter(~Recipe.ingredients.any(Ingredient.name.ilike(f"{dislike}")))
+        query = query.filter(
+            ~Recipe.ingredients.any(Ingredient.name.ilike(f"%{allergen}%"))
+        )
 
-    # # include likes if True
-    # if likes and user_likes:
-    #         # list comprehension to hold all individual likes for OR condition
-    #         user_like_conditions = [
-    #             Recipe.ingredients.any(Ingredient.name.ilike(f"%{liked_ingredient}%")) 
-    #             for liked_ingredient in user_likes                   
-    #         ]
+    # 3. protein filtering for Parkinson's 
+    if protein_goal:
+        # get nutrient ID for "Protein"
+        protein_nutrient = db.session.query(Nutrient).filter(
+            Nutrient.name.ilike("%Protein%")
+        ).first()
 
-    #         current_filtered_recipes = current_filtered_recipes.filter(
-    #             or_(*user_like_conditions)
-    #         )
-
-    # #nutritional goal filters
-    # for goal in user_nutrition_goals:
-    #     if goal == "low sugar":
-    #         # exclude recipes where sugar quantity > 10g per serving
-    #         current_filtered_recipes = current_filtered_recipes.filter(
-    #             ~Recipe.recipe_nutrients.any(
-    #                 and_(
-    #                     RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
-    #                     Nutrient.name.ilike("%sugar%"),
-    #                     RecipeNutrient.quantity > 10
-    #                 )
-    #             )
-    #         )
-
-    #     elif goal == "high protein":
-    #         # include recipes where protein quantity >= 20g per serving 
-    #         current_filtered_recipes = current_filtered_recipes.filter(
-    #             Recipe.recipe_nutrients.any(
-    #                 and_(
-    #                     RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
-    #                     Nutrient.name.ilike("%protein%"),
-    #                     RecipeNutrient.quantity >= 20
-    #                 )
-    #             )
-    #         )
-        
-    #     elif goal == "high fiber":
-    #         # include recipes where fiber quantity>=< 5g per serving 
-    #         current_filtered_recipes = current_filtered_recipes.filter(
-    #             Recipe.recipe_nutrients.any(
-    #                 and_(
-    #                     RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
-    #                     Nutrient.name.ilike("%fiber%"),
-    #                     RecipeNutrient.quantity >= 5 
-    #                 )
-    #             )
-    #         )
-        
-    #     elif goal == "low sodium":
-    #         # exclude recipes where sodium quantity > 300mg
-    #         current_filtered_recipes = current_filtered_recipes.filter(
-    #             ~Recipe.recipe_nutrients.any(
-    #                 and_(
-    #                     RecipeNutrient.nutrient_id == Nutrient.nutrient_id,
-    #                     Nutrient.name.ilike("%sodium%"),
-    #                     RecipeNutrient.quantity <= 300
-    #                 )
-    #             )
-    #         )
-    
-    # diet restirction filters
-    # for restriction in user_diet_restrictions:
-
-    #     current_filtered_recipes = current_filtered_recipes.filter(
-    #         Recipe.diets.contains([restriction])
-    #     )
-
-    current_filtered_recipes = current_filtered_recipes.order_by(Recipe.title)
-
-    return current_filtered_recipes.limit(limit).all()
+        if protein_nutrient:
+            if protein_goal == "high":
+                # > 20g per serving
+                query = query.join(RecipeNutrient).filter(
+                    RecipeNutrient.nutrient_id == protein_nutrient.nutrient_id,
+                    (RecipeNutrient.quantity / Recipe.servings) >= 20
+                )
+            elif protein_goal == "low":
+                # < 15g per serving
+                query = query.join(RecipeNutrient).filter(
+                    RecipeNutrient.nutrient_id == protein_nutrient.nutrient_id,
+                    (RecipeNutrient.quantity / Recipe.servings) <= 15
+                )
+    return query.order_by(Recipe.title).limit(limit).all()
 
 
 # ------- Ingredient CRUD functions -------
