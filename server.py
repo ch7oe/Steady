@@ -283,9 +283,7 @@ def get_recipe_search_page():
 # api endpoint for recipe search (AJAX)
 @app.route("/api/recipes/search", methods=["GET"])
 def api_search_recipes():
-    """api endpoint to search for recipes.
-    Returns JSON list of recipes.
-    """
+    """API endpoint to search for recipes. Returns JSON list."""
 
     user_id = session.get("user_id")
     if not user_id:
@@ -293,49 +291,65 @@ def api_search_recipes():
     
     user = crud.get_user_by_id(user_id)
 
-    # get search term and filters
-    search_term = request.args.get("query", "").strip()  
-    likes_filter = request.args.get("likes") # true or false
+    search_term = request.args.get("query", "").strip()
     
+    # get protein value from frontend: "high", "low", empty
+    protein_goal = request.args.get("protein_goal")
 
     if not search_term:
-        return jsonify([]) # return empty list if no search term 
+        return jsonify([])
     
     user_allergens = [a.allergen for a in user.allergies]
     user_diet_restrictions = [dr.restriction for dr in user.diet_restrictions]
     user_dislikes = [dislike.name.lower() for dislike in user.likes_dislikes]
 
+    # 1. fetch from API 
     cached_recipes_from_api = get_and_cache_spoonacular_recipes(
         recipe_query=search_term,
         user_allergens=user_allergens,
         user_diet_restrictions=user_diet_restrictions,
         user_dislikes=user_dislikes,
+        protein_goal=protein_goal,
+        limit=10 # limit kept small for speed
     )
 
-    # filtered_recipes_from_db = crud.get_recipes_by_search(
-    #     user_id=user_id,
-    #     search_term=search_term,
-    #     likes=likes_filter
-    # )
+    # 2. query from database
+    recipes_from_db = crud.get_recipes_by_search(
+        user_id=user_id,
+        search_term=search_term,
+        protein_goal=protein_goal
+    )
 
-    if not cached_recipes_from_api:
+    
+
+    if not recipes_from_db:
         return jsonify({"message": "No recipes found matching criteria."})
 
     # list of dictionaries with recipe data to send as JSON to frontend
     recipes_data_for_frontend = []
     
-    for recipe_object in cached_recipes_from_api:
+    for recipe in recipes_from_db:
+        # protein per serving 
+        protein_content = "N/A"
+
+        for r_nutrient in recipe.recipe_nutrients:
+            if r_nutrient.nutrient.name == "Protein":
+                if recipe.servings and recipe.servings > 0:
+                    # calculate amount of protein per serving 
+                    amount_per_serving = r_nutrient.quantity / recipe.servings
+                    protein_content = round(amount_per_serving, 1) # round to 1 decimal place
+                else:
+                    protein_content = 0
+                break # stop looking when find Protein
+
         recipes_data_for_frontend.append({
-            "id": recipe_object.recipe_id,
-            "spoonacular_id": recipe_object.spoonacular_id,
-            "title": recipe_object.title,
-            "source": recipe_object.source,
-            "url": recipe_object.url,
-            "servings": recipe_object.servings,
-            "instructions": recipe_object.instructions
+            "id": recipe.recipe_id,
+            "title": recipe.title,
+            "url": recipe.url,
+            "servings": recipe.servings,
+            "protein": protein_content
         })
 
-    
     # return JSON response
     return jsonify(recipes_data_for_frontend)
 
@@ -393,7 +407,7 @@ def add_recipe_to_meal_plan():
 # api for removing recipe from meal plan (AJAX POST)
 @app.route("/api/meal-plan/remove", methods=["POST"])
 def remove_recipe_from_meal_plan():
-    """remove recipe from meal plan."""
+    """Remove recipe from meal plan."""
 
     user_id = session.get("user_id")
 
@@ -446,7 +460,7 @@ def meal_log():
 # api for getting logged meals (AJAX)
 @app.route("/api/meal-log/get", methods=["GET"])
 def api_get_logged_meals():
-    """get logged meals for a specific user and date.
+    """Get logged meals for a specific user and date.
     """
 
     user_id = session.get("user_id")
@@ -542,7 +556,7 @@ def api_add_logged_meal():
 # api for removing a logged meal (AJAX POST)
 @app.route("/api/meal-log-remove", methods=["POST"])
 def api_remove_logged_meal():
-    """remove a logged meal for a user."""
+    """Remove a logged meal for a user."""
 
     user_id = session.get("user_id")
     if not user_id:
