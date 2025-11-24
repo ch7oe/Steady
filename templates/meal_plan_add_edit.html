@@ -72,13 +72,13 @@
                         </button>
                     </div>
 
-                    <!-- basic filters for search -->
                     <div class="d-flex flex-wrap gap-3 mb-3">
-                        <span class="fw-bold text-sm">Filters:</span>
-                        <div class="form-check form-switch">
-                            <label for="filter-likes" class="form-check-label">My Liked Ingredients</label>
-                            <input type="checkbox" name="filter-likes" id="filter-likes" class="form-check-input">
-                        </div>
+                        <span>Protein Goal:</span>
+                        <select id="protein-filter" class="form-select form-select-sm w-auto">
+                            <option value="">Any</option>
+                            <option value="low">Low Protein (Daytime/Meds)</option>
+                            <option value="high">High Protein (Evening)</option>
+                        </select>
                     </div>
 
                     <!-- recipe search results -->
@@ -112,15 +112,14 @@
                 return;
             };
 
-            // check if "likes" filter is active
-            const likesFilter = filterLikesCheckbox.checked;
+            const proteinFilter = document.querySelector("#protein-filter").value;
 
             // show a loading message to user
             recipeSearchResultDiv.innerHTML = "<div class='spinner-border text-success' role='status'></div><p class='text-center col-span-full visually-hidden'>Searching...</p>";
 
             const params = new URLSearchParams({
                 query: queryRecipeSearch,
-                likes: likesFilter
+                protein_goal: proteinFilter
             }).toString();
 
             fetch(`/api/recipes/search?${params}`)
@@ -141,6 +140,7 @@
                     } else {
                         for (const recipe of responseJson) {
                             const recipeCard = document.createElement("div");
+                            
                             recipeCard.innerHTML = `
                             <div class="card h-100 shadow-sm border-0 rounded">
                                 <div class="card-body d-flex flex-column">
