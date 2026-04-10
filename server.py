@@ -301,14 +301,14 @@ def api_search_recipes():
     
     user_allergens = [a.allergen for a in user.allergies]
     user_diet_restrictions = [dr.restriction for dr in user.diet_restrictions]
-    user_dislikes = [dislike.name.lower() for dislike in user.likes_dislikes]
+    # user_dislikes = [dislike.name.lower() for dislike in user.likes_dislikes]
 
     # 1. fetch from API 
     cached_recipes_from_api = get_and_cache_spoonacular_recipes(
         recipe_query=search_term,
         user_allergens=user_allergens,
         user_diet_restrictions=user_diet_restrictions,
-        user_dislikes=user_dislikes,
+        # user_dislikes=user_dislikes,
         protein_goal=protein_goal,
         limit=10 # limit kept small for speed
     )
@@ -319,8 +319,6 @@ def api_search_recipes():
         search_term=search_term,
         protein_goal=protein_goal
     )
-
-    
 
     if not recipes_from_db:
         return jsonify({"message": "No recipes found matching criteria."})

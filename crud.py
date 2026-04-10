@@ -307,7 +307,7 @@ def get_recipe_by_spoonacular_id(spoonacular_id):
 
 
 def get_recipes_by_search(user_id, search_term, protein_goal, limit=50):
-    """Filters recipes based on search term, allergies, and protein goal."""
+    """Filters recipes based on search term, allergies, diet, dislikes, and protein."""
 
     # get user
     user = db.session.query(User).get(user_id)
@@ -317,6 +317,8 @@ def get_recipes_by_search(user_id, search_term, protein_goal, limit=50):
     
     # user specific data 
     user_allergens = {a.allergen for a in user.allergies} # user allergies 
+    user_diet_restrictions = {dr.restriction.lower() for dr in user.diet_restrictions}
+    user_dislikes = {ld.name for ld in user.likes_dislikes if ld.preference == "dislike"}
     
     # 1. initial query: where search term is included in a recipe's title OR ingredients
     query = db.session.query(Recipe).outerjoin(Ingredient).filter(
@@ -330,11 +332,21 @@ def get_recipes_by_search(user_id, search_term, protein_goal, limit=50):
             ~Recipe.ingredients.any(Ingredient.name.ilike(f"%{allergen}%"))
         )
 
-    # 3. protein filtering for Parkinson's 
+    # 3. exclude dislikes
+    for dislike in user_dislikes:
+        query = query.filter(
+            ~Recipe.ingredients.any(Ingredient.name.ilike(f"{dislike}"))
+        )
+
+    # 4. filter by diet restrictions
+    for restriction in user_diet_restrictions:
+        query = query.filter(Recipe.diets.contains([restriction]))
+
+    # 5. protein filtering for Parkinson's 
     if protein_goal:
-        # get nutrient ID for "Protein"
+        # get nutrient ID for protein
         protein_nutrient = db.session.query(Nutrient).filter(
-            Nutrient.name.ilike("%Protein%")
+            Nutrient.name.ilike("%protein%")
         ).first()
 
         if protein_nutrient:

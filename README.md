@@ -18,7 +18,7 @@
 
 ## Project Description
 
-SteadyPlate is a personalized web application designed to empower Parkinson's patients and their caregivers in managing daily dietary needs. Inspired by the challenges faced with meal planning and nutrition management, SteadyPlate aims to reduce decision fatigue and support healthier routines by providing intuitive tools for custom meal planning, nutrition tracking, and grocery list generation. It brings ease and comfort back to the kitchen, one plate at a time.
+Steady is a personalized web application designed to empower Parkinson's patients and their caregivers in managing daily dietary needs. Inspired by the challenges faced with meal planning and nutrition management, Steady aims to reduce decision fatigue and support healthier routines by providing intuitive tools for custom meal planning, nutrition tracking, and grocery list generation. It brings ease and comfort back to the kitchen, one plate at a time.
 
 ---
 

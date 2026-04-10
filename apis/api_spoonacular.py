@@ -12,11 +12,10 @@ SPOONACULAR_BASE_URL = "https://api.spoonacular.com/recipes"
 def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_diet_restrictions=None, user_dislikes=None, protein_goal=None, limit=20):
     """Send search recipes request to Spoonacular API. Cache and return fetched recipes.
     protein_goal: "high" (>= 25g) or "low" (<= 10g)
-    """
-
-    headers = {'x-api-key': API_KEY} 
+    """ 
 
     spoonacular_params = {
+        'apiKey': API_KEY,
         'query': recipe_query, # natural language recipe search query
         'number': limit, # how many recipes to return
         'instructionsRequired': True,
@@ -29,7 +28,6 @@ def get_and_cache_spoonacular_recipes(recipe_query, user_allergens=None, user_di
     # user critical filters (allergies/diet)
     if user_allergens:
         spoonacular_params['intolerances'] = ','.join(user_allergens)
-    
     if user_diet_restrictions:
         spoonacular_params['diet'] = ','.join(user_diet_restrictions)
 
