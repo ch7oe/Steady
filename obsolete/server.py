@@ -1,11 +1,11 @@
 """Server for Parkinson's app."""
 
 from flask import Flask, render_template, request, flash, session, redirect, jsonify 
-from model import connect_to_db, db, MealPlanRecipe, MealLog, MealLogRecipe
+from obsolete.model import connect_to_db, db, MealPlanRecipe, MealLog, MealLogRecipe
 from datetime import date, timedelta, datetime
-import crud
-from nutritional_analysis import calculate_daily_nutrient_intake, generate_simple_grocery_list_for_week
-from apis.api_spoonacular import get_and_cache_spoonacular_recipes
+import obsolete.crud as crud
+from obsolete.nutritional_analysis import calculate_daily_nutrient_intake, generate_simple_grocery_list_for_week
+from obsolete.api_spoonacular import get_and_cache_spoonacular_recipes
 
 
 from jinja2 import StrictUndefined

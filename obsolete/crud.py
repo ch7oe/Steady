@@ -1,6 +1,6 @@
 """CRUD operations"""
 
-from model import db, User, DietaryRestriction, Medication, Allergy, NutritionGoal, LikeDislike, Reminder, Recipe, Ingredient, Nutrient, RecipeNutrient, MealLog, MealLogRecipe, MealPlan, MealPlanRecipe, connect_to_db
+from obsolete.model import db, User, DietaryRestriction, Medication, Allergy, NutritionGoal, LikeDislike, Reminder, Recipe, Ingredient, Nutrient, RecipeNutrient, MealLog, MealLogRecipe, MealPlan, MealPlanRecipe, connect_to_db
 from sqlalchemy import or_, and_
 from datetime import datetime
 from passlib.hash import argon2
@@ -528,7 +528,7 @@ def get_recipes_in_meal_plan(meal_plan_id):
 
 
 if __name__ == "__main__":
-    from server import app
+    from obsolete.server import app
     connect_to_db(app)
     app.app_context().push()
 

@@ -2,8 +2,8 @@
 
 from datetime import date, timedelta
 
-from model import connect_to_db
-import crud
+from obsolete.model import connect_to_db
+import obsolete.crud as crud
 
 
 def calculate_daily_nutrient_intake(user_id, intake_date):
@@ -167,6 +167,6 @@ def generate_simple_grocery_list_for_week(user_id, week_start_date, week_end_dat
 
 
 if __name__ == "__main__":
-    from server import app
+    from obsolete.server import app
     connect_to_db(app)
     app.app_context().push()

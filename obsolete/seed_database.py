@@ -4,10 +4,10 @@ import os
 from random import choice, randint
 from datetime import datetime, time, date, timedelta
 
-import crud 
-from model import db, connect_to_db
-from apis.api_spoonacular import get_and_cache_spoonacular_recipes
-from server import app
+import obsolete.crud as crud 
+from obsolete.model import db, connect_to_db
+from obsolete.api_spoonacular import get_and_cache_spoonacular_recipes
+from obsolete.server import app
 
 # clean db
 os.system("dropdb steady")

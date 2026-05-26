@@ -285,6 +285,6 @@ def connect_to_db(flask_app, db_uri="postgresql:///steady", echo=True):
 
 
 if __name__ == "__main__":
-    from server import app
+    from obsolete.server import app
     connect_to_db(app)
     app.app_context().push()
